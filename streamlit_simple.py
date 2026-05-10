@@ -19,6 +19,7 @@ from src.module2_competitive.reporter import IntelReporter
 from src.module3_creative.generator import CreativeGenerator
 from src.module4_presell.generator import AdvertorialGenerator
 from src.module4_presell.builder import AdvertorialBuilder
+from src.module4_presell.site_builder import PresellSiteBuilder
 
 # Load .env at startup
 load_dotenv()
@@ -406,30 +407,50 @@ with tabs[4]:
                         vsl_angle=st.session_state.vsl_info["angle"]
                     )
 
+                    # Build presell page HTML
                     html_content = AdvertorialBuilder.build(page)
-                    output_dir = Path("output/presell_pages")
-                    output_dir.mkdir(parents=True, exist_ok=True)
 
-                    filename = f"presell_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{page.generated_at.strftime('%Y%m%d')}.html"
-                    filepath = output_dir / filename
+                    # Add to website
+                    site_builder = PresellSiteBuilder()
+                    site_builder.build_site()
+                    site_builder.add_article(page, html_content)
+                    site_builder.generate_css()
+                    site_builder.generate_index()
+                    site_builder.generate_sitemap()
 
-                    with open(filepath, "w", encoding="utf-8") as f:
-                        f.write(html_content)
-
-                    st.success("✓ Pre-sell page generated!")
+                    st.success("✓ Article added to presell site!")
 
                     st.subheader("Preview")
                     st.components.v1.html(html_content, height=700, scrolling=True)
 
-                    st.download_button(
-                        label="Download HTML",
-                        data=html_content,
-                        file_name=filename,
-                        mime="text/html",
-                        key="presell_download_btn"
-                    )
+                    # Download instructions
+                    st.write("---")
+                    st.subheader("Deployment")
+                    st.info("""
+                    **Your presell site is ready!**
 
-                    st.success("✓ Campaign ready! Funnel is: Ad → Pre-sell Page → MaxWeb VSL")
+                    1. Download the site: `output/presell_site/`
+                    2. Upload to **Vercel** or **Netlify** (free):
+                       - Vercel: `vercel deploy`
+                       - Netlify: Drag & drop `output/presell_site/` folder
+                    3. Get your URL (e.g., `mysite.vercel.app`)
+                    4. Native ads link to: `mysite.vercel.app/articles/brain-boost-pro.html`
+                    5. Article links to: MaxWeb VSL
+                    """)
+
+                    # Show site structure
+                    st.write("**Site structure:**")
+                    st.code("""
+presell_site/
+├── index.html (blog home)
+├── articles/
+│   └── brain-boost-pro.html (your presell page)
+├── css/
+│   └── style.css (shared styling)
+└── sitemap.html (navigation)
+                    """)
+
+                    st.success("✓ Campaign ready! Funnel: Ad → Presell Article → MaxWeb VSL")
 
                 except Exception as e:
                     st.error(f"Error: {e}")
