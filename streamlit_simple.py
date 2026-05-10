@@ -367,21 +367,15 @@ with tabs[3]:
 # ===== TAB 5: PRESELL PAGE =====
 with tabs[4]:
     st.header("Step 5: Pre-sell Page Generation")
-    st.write("Build advertorial landing page aligned with VSL angle")
+    st.write("Add presell page to your presell website")
 
-    # Initialize website (one-time)
-    site_builder = PresellSiteBuilder()
-    if not site_builder.is_initialized():
-        st.warning("⚠️ Website not initialized yet")
-        if st.button("Initialize Website", type="primary", key="init_site_btn"):
-            with st.spinner("Setting up presell website..."):
-                site_builder.init_site()
-                st.success("✓ Website initialized! Ready to add articles.")
-                st.rerun()
-    else:
-        st.success("✓ Website ready")
-
-    st.divider()
+    st.info("""
+    **Setup (one-time):**
+    ```
+    python -m src.module4_presell init-site --domain your-domain.com
+    ```
+    This creates a website with 8 generic health articles ready for presell pages.
+    """)
 
     if st.session_state.selected_offer:
         st.success(f"📌 Offer: **{st.session_state.selected_offer}**")
@@ -435,15 +429,14 @@ with tabs[4]:
 
                     st.write("---")
                     st.info(f"""
-                    ✓ Article saved to `output/presell_site/articles/{article_path.name}`
+                    **Article saved to:**
+                    `output/presell_site/articles/{article_path.name}`
 
-                    **Next steps:**
-                    1. Generate more articles (repeat for other offers)
-                    2. Download entire `output/presell_site/` folder
-                    3. Deploy to **Vercel** or **Netlify**
+                    **URL will be:**
+                    `https://your-domain.com/articles/{article_path.stem}.html`
+
+                    Continue adding more presell pages, then deploy the entire `presell_site/` folder.
                     """)
-
-                    st.success("✓ Ready to deploy! Continue adding articles or deploy now.")
 
                 except Exception as e:
                     st.error(f"Error: {e}")
