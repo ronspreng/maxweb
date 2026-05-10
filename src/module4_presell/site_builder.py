@@ -12,22 +12,72 @@ logger = logging.getLogger(__name__)
 
 
 class PresellSiteBuilder:
-    """Generate a complete static website with presell articles."""
+    """Manage a static presell website."""
 
     def __init__(self, site_dir: Path = Path("output/presell_site")):
         self.site_dir = site_dir
         self.articles_dir = site_dir / "articles"
 
-    def build_site(self) -> Path:
-        """Initialize site structure."""
+    def init_site(self) -> Path:
+        """Initialize empty website template (one-time setup)."""
         self.site_dir.mkdir(parents=True, exist_ok=True)
         self.articles_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"[site] Initialized site structure at {self.site_dir}")
+        self.generate_css()
+        self._generate_empty_index()
+        self.generate_sitemap()
+        logger.info(f"[site] Initialized empty site at {self.site_dir}")
         return self.site_dir
+
+    def is_initialized(self) -> bool:
+        """Check if site has been initialized."""
+        return (self.site_dir / "index.html").exists()
+
+    def _generate_empty_index(self) -> Path:
+        """Generate empty index.html template."""
+        index_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health & Wellness - Articles</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <h1 class="logo">Health & Wellness</h1>
+            <p class="tagline">Expert insights and wellness tips</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="articles-grid">
+            <h1>Latest Articles</h1>
+            <div class="article-list">
+                <!-- Articles will be added here -->
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; {datetime.now().year} Health & Wellness. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>"""
+
+        index_path = self.site_dir / "index.html"
+        with open(index_path, "w", encoding="utf-8") as f:
+            f.write(index_html)
+
+        logger.info(f"[site] Generated empty index.html")
+        return index_path
 
     def add_article(self, page: PresellPage, article_html: str) -> Path:
         """
         Add presell page as article to site.
+        Saves article and updates index.html.
 
         Args:
             page: PresellPage model
@@ -48,6 +98,10 @@ class PresellSiteBuilder:
             f.write(html)
 
         logger.info(f"[site] Added article: {filename}")
+
+        # Update index listing
+        self.update_index()
+
         return filepath
 
     def _wrap_article(self, page: PresellPage, body_html: str, slug: str) -> str:
@@ -84,9 +138,10 @@ class PresellSiteBuilder:
 </body>
 </html>"""
 
-    def generate_index(self) -> Path:
+    def update_index(self) -> Path:
         """
-        Generate index.html with listing of all articles.
+        Update index.html with current article listing.
+        Adds articles without regenerating entire page.
 
         Returns:
             Path to index.html
@@ -99,54 +154,32 @@ class PresellSiteBuilder:
             # Extract title from filename
             title = article_file.stem.replace("-", " ").title()
             slug = article_file.stem
-            article_items.append(f"""
-            <div class="article-card">
+            article_items.append(f"""            <div class="article-card">
                 <h2><a href="/articles/{slug}.html">{title}</a></h2>
                 <p>Discover the latest in health and wellness.</p>
                 <a href="/articles/{slug}.html" class="btn">Read More</a>
             </div>""")
 
-        articles_html = "\n".join(article_items) if article_items else """
-            <div class="article-card">
+        articles_html = "\n".join(article_items) if article_items else """            <div class="article-card">
                 <p>No articles yet. Create your first presell page to get started!</p>
             </div>"""
 
-        index_html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health & Wellness - Articles</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <h1 class="logo">Health & Wellness</h1>
-            <p class="tagline">Expert insights and wellness tips</p>
-        </div>
-    </header>
-
-    <main class="container">
-        <section class="articles-grid">
-            <h1>Latest Articles</h1>
-            {articles_html}
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; {datetime.now().year} Health & Wellness. All rights reserved.</p>
-        </div>
-    </footer>
-</body>
-</html>"""
-
+        # Read existing index
         index_path = self.site_dir / "index.html"
-        with open(index_path, "w", encoding="utf-8") as f:
-            f.write(index_html)
+        with open(index_path, "r", encoding="utf-8") as f:
+            index_content = f.read()
 
-        logger.info(f"[site] Generated index.html ({len(articles)} articles)")
+        # Replace article list placeholder
+        updated = index_content.replace(
+            "                <!-- Articles will be added here -->",
+            articles_html
+        )
+
+        # Write back
+        with open(index_path, "w", encoding="utf-8") as f:
+            f.write(updated)
+
+        logger.info(f"[site] Updated index.html ({len(articles)} articles)")
         return index_path
 
     def generate_css(self) -> Path:

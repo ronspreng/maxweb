@@ -369,6 +369,20 @@ with tabs[4]:
     st.header("Step 5: Pre-sell Page Generation")
     st.write("Build advertorial landing page aligned with VSL angle")
 
+    # Initialize website (one-time)
+    site_builder = PresellSiteBuilder()
+    if not site_builder.is_initialized():
+        st.warning("⚠️ Website not initialized yet")
+        if st.button("Initialize Website", type="primary", key="init_site_btn"):
+            with st.spinner("Setting up presell website..."):
+                site_builder.init_site()
+                st.success("✓ Website initialized! Ready to add articles.")
+                st.rerun()
+    else:
+        st.success("✓ Website ready")
+
+    st.divider()
+
     if st.session_state.selected_offer:
         st.success(f"📌 Offer: **{st.session_state.selected_offer}**")
     else:
@@ -412,45 +426,24 @@ with tabs[4]:
 
                     # Add to website
                     site_builder = PresellSiteBuilder()
-                    site_builder.build_site()
-                    site_builder.add_article(page, html_content)
-                    site_builder.generate_css()
-                    site_builder.generate_index()
-                    site_builder.generate_sitemap()
+                    article_path = site_builder.add_article(page, html_content)
 
-                    st.success("✓ Article added to presell site!")
+                    st.success(f"✓ Article added: `{article_path.name}`")
 
                     st.subheader("Preview")
                     st.components.v1.html(html_content, height=700, scrolling=True)
 
-                    # Download instructions
                     st.write("---")
-                    st.subheader("Deployment")
-                    st.info("""
-                    **Your presell site is ready!**
+                    st.info(f"""
+                    ✓ Article saved to `output/presell_site/articles/{article_path.name}`
 
-                    1. Download the site: `output/presell_site/`
-                    2. Upload to **Vercel** or **Netlify** (free):
-                       - Vercel: `vercel deploy`
-                       - Netlify: Drag & drop `output/presell_site/` folder
-                    3. Get your URL (e.g., `mysite.vercel.app`)
-                    4. Native ads link to: `mysite.vercel.app/articles/brain-boost-pro.html`
-                    5. Article links to: MaxWeb VSL
+                    **Next steps:**
+                    1. Generate more articles (repeat for other offers)
+                    2. Download entire `output/presell_site/` folder
+                    3. Deploy to **Vercel** or **Netlify**
                     """)
 
-                    # Show site structure
-                    st.write("**Site structure:**")
-                    st.code("""
-presell_site/
-├── index.html (blog home)
-├── articles/
-│   └── brain-boost-pro.html (your presell page)
-├── css/
-│   └── style.css (shared styling)
-└── sitemap.html (navigation)
-                    """)
-
-                    st.success("✓ Campaign ready! Funnel: Ad → Presell Article → MaxWeb VSL")
+                    st.success("✓ Ready to deploy! Continue adding articles or deploy now.")
 
                 except Exception as e:
                     st.error(f"Error: {e}")
