@@ -156,18 +156,11 @@ with tabs[1]:
     else:
         st.warning("💡 Go to Step 1 and select an offer first")
 
-    # Auto-generate URL from selected offer
-    auto_url = None
-    if st.session_state.selected_offer:
-        slug = st.session_state.selected_offer.lower().replace(" ", "-").replace("'", "")
-        auto_url = f"https://maxweb.com/offer/{slug}"
-
     maxweb_url = st.text_input(
         "MaxWeb VSL URL",
-        value=auto_url or "",
-        placeholder="https://maxweb.com/offer/brain-boost-pro",
+        placeholder="https://maxweb.com/offer/... (copy from MaxWeb after login)",
         key="vsl_url",
-        help="Auto-filled from offer name, edit if needed"
+        help="Login to MaxWeb, copy VSL URL, paste here"
     )
 
     if st.button("Detect VSL Angle", type="primary", key="detect_vsl_btn"):
