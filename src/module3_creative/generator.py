@@ -33,6 +33,7 @@ class CreativeGenerator:
         offer_name: str,
         niche: str,
         auto_load_report: bool = True,
+        vsl_angle: str | None = None,
     ) -> CreativeSet:
         """
         Generate multiple creative variations for an offer.
@@ -59,7 +60,7 @@ class CreativeGenerator:
                 logger.info(f"[creative] No report found, using generic approach")
 
         # Build context
-        context = self._build_context(report, niche)
+        context = self._build_context(report, niche, vsl_angle)
 
         # Prompt Claude for creatives
         response = self.client.messages.create(
@@ -147,16 +148,31 @@ Output ONLY valid JSON (no markdown, no code blocks):
         logger.info(f"[creative] Generated {len(creative_set.creatives)} creatives")
         return creative_set
 
-    def _build_context(self, report, niche: str) -> str:
-        """Build context string from competitive report."""
-        if not report:
-            return "No competitive patterns available. Use general best practices for health/supplement niches."
+    def _build_context(self, report, niche: str, vsl_angle: str | None = None) -> str:
+        """Build context string from competitive report and VSL angle."""
+        context_lines = []
 
-        context_lines = [
+        # Prioritize VSL angle if provided
+        if vsl_angle:
+            context_lines.extend([
+                "CRITICAL: The MaxWeb VSL uses this main angle:",
+                f"'{vsl_angle}'",
+                "Your native ads MUST lead readers toward this angle/promise.",
+                "",
+            ])
+
+        if not report:
+            msg = "No competitive patterns available. Use general best practices for health/supplement niches."
+            if vsl_angle:
+                msg += f" Ensure ads support the VSL angle: {vsl_angle}"
+            context_lines.append(msg)
+            return "\n".join(context_lines)
+
+        context_lines.extend([
             "Winning patterns from Module 2 analysis:",
             "",
-            "Top hooks (use these themes):",
-        ]
+            "Top hooks (use to support the VSL angle):",
+        ])
 
         for hook in report.top_hooks[:3]:
             context_lines.append(f"- {hook.value}")

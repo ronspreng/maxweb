@@ -295,6 +295,14 @@ with tab3:
             key="creative_niche_select"
         )
 
+    # VSL angle input
+    vsl_angle = st.text_input(
+        "VSL Angle (optional)",
+        placeholder="e.g. 'Doctor reveals secret formula'",
+        key="creative_vsl_angle",
+        help="Leave blank or enter the main angle from the MaxWeb VSL to align ads with it"
+    )
+
     # Check if Module 2 report exists
     reports = list(Path("output/reports").glob(f"competitive_intel_*_{niche}.json"))
     report_status = "✓ Patterns loaded" if reports else "⚠ Generic mode"
@@ -312,7 +320,8 @@ with tab3:
                     creative_set = generator.generate(
                         offer_name=offer_name,
                         niche=niche,
-                        auto_load_report=True
+                        auto_load_report=True,
+                        vsl_angle=vsl_angle if vsl_angle else None
                     )
 
                     # Display creatives in a table
@@ -380,6 +389,12 @@ with tab4:
             placeholder="https://maxweb.com/offer/...",
             key="presell_url"
         )
+        maxweb_url = st.text_input(
+            "MaxWeb VSL URL (for angle detection)",
+            placeholder="https://maxweb.com/offer/...",
+            key="presell_maxweb_url",
+            help="Leave blank to auto-use affiliate URL or enter MaxWeb VSL URL directly"
+        )
 
     col3, col4 = st.columns(2)
     with col3:
@@ -404,6 +419,20 @@ with tab4:
                 try:
                     from src.module4_presell.generator import AdvertorialGenerator
                     from src.module4_presell.builder import AdvertorialBuilder
+                    from src.module4_presell.maxweb_scraper import MaxWebScraper
+
+                    # Detect VSL angle from MaxWeb if URL provided
+                    vsl_angle = None
+                    vsl_info = None
+                    if maxweb_url:
+                        with st.spinner("Detecting VSL angle from MaxWeb..."):
+                            scraper = MaxWebScraper()
+                            vsl_info = scraper.scrape_offer(maxweb_url)
+                            if vsl_info:
+                                vsl_angle = vsl_info["angle"]
+                                st.info(f"📌 Detected angle: {vsl_angle} ({vsl_info['hook_type']} hook)")
+                            else:
+                                st.warning("Could not detect angle from MaxWeb URL")
 
                     generator = AdvertorialGenerator()
                     # Auto-load report for the niche (generator will try to load from JSON)
@@ -413,7 +442,8 @@ with tab4:
                         niche=niche,
                         offer_url=offer_url,
                         report=None,  # Will auto-load from JSON if available
-                        auto_load_report=True
+                        auto_load_report=True,
+                        vsl_angle=vsl_angle
                     )
 
                     # Build and display HTML

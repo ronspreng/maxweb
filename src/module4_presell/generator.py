@@ -36,6 +36,7 @@ class AdvertorialGenerator:
         offer_url: str,
         report: CompetitiveReport | None = None,
         auto_load_report: bool = True,
+        vsl_angle: str | None = None,
     ) -> PresellPage:
         """
         Generate advertorial copy for an offer.
@@ -47,6 +48,7 @@ class AdvertorialGenerator:
             offer_url: CTA URL (affiliate link)
             report: Optional CompetitiveReport with winning patterns
             auto_load_report: If True and report is None, try to load from file
+            vsl_angle: Optional VSL angle from MaxWeb (e.g. "Doctor reveals secret formula")
 
         Returns:
             PresellPage with generated headline, subheadline, body, cta_text
@@ -57,8 +59,8 @@ class AdvertorialGenerator:
         if report is None and auto_load_report:
             report = self.load_report(niche)
 
-        # Build context from report if available
-        context = self._build_context(report, niche)
+        # Build context from report and VSL angle if available
+        context = self._build_context(report, niche, vsl_angle)
 
         # Prompt Claude
         response = self.client.messages.create(
@@ -201,16 +203,31 @@ Output ONLY valid JSON (no markdown, no code blocks):
             logger.error(f"[presell] Error loading report: {e}")
             return None
 
-    def _build_context(self, report: CompetitiveReport | None, niche: str) -> str:
-        """Build context string from competitive report."""
-        if not report:
-            return "No competitive report available. Use general best practices for this niche."
+    def _build_context(self, report: CompetitiveReport | None, niche: str, vsl_angle: str | None = None) -> str:
+        """Build context string from competitive report and VSL angle."""
+        context_lines = []
 
-        context_lines = [
+        # Prioritize VSL angle if provided
+        if vsl_angle:
+            context_lines.extend([
+                "CRITICAL: The MaxWeb VSL uses this main angle:",
+                f"'{vsl_angle}'",
+                "Your presell page MUST align with and support this angle.",
+                "",
+            ])
+
+        if not report:
+            msg = "No competitive report available. Use general best practices for this niche."
+            if vsl_angle:
+                msg += f" Focus on supporting the VSL angle: {vsl_angle}"
+            context_lines.append(msg)
+            return "\n".join(context_lines)
+
+        context_lines.extend([
             "Winning patterns from competitive analysis:",
             "",
-            "Top hooks (use as inspiration):",
-        ]
+            "Top hooks (use to support the VSL angle):",
+        ])
 
         for hook in report.top_hooks[:3]:
             context_lines.append(f"- {hook.value} (seen ~{hook.frequency}x)")
