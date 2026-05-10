@@ -22,6 +22,8 @@ except ImportError:
 
 from .builder import AdvertorialBuilder
 from .generator import AdvertorialGenerator
+from .site_builder import PresellSiteBuilder
+from .site_templates import GENERIC_ARTICLES
 
 app = typer.Typer(
     name="module4-presell",
@@ -36,6 +38,96 @@ logger = logging.getLogger(__name__)
 
 OUTPUT_DIR = Path("output/presell_pages")
 DATA_CACHE_DIR = Path("data/competitive")
+
+
+@app.command()
+def init_site(
+    domain: str = typer.Option(
+        "health-tips.com",
+        "--domain",
+        help="Domain name for the website (e.g. brainhealth-tips.com)"
+    ),
+) -> None:
+    """
+    Initialize presell website with generic health articles.
+
+    Creates a complete static website ready for deployment.
+    Run this ONCE before adding presell pages.
+    """
+    typer.echo("\n" + "=" * 60)
+    typer.echo("PRESELL WEBSITE INITIALIZATION")
+    typer.echo("=" * 60)
+    typer.echo(f"Domain: {domain}")
+    typer.echo(f"Articles: {len(GENERIC_ARTICLES)}")
+    typer.echo("=" * 60 + "\n")
+
+    try:
+        site_builder = PresellSiteBuilder()
+
+        # Initialize site structure
+        typer.echo("1. Creating site structure...")
+        site_builder.init_site()
+        typer.echo("   [OK] CSS, templates, sitemap created")
+
+        # Add generic articles
+        typer.echo(f"\n2. Adding {len(GENERIC_ARTICLES)} generic articles...")
+        for i, article in enumerate(GENERIC_ARTICLES, 1):
+            # Create article HTML
+            article_html = f"""<h1>{article['title']}</h1>
+{article['content']}
+
+<div class="article-footer">
+    <p><em>Updated: {Path(__file__).stat().st_mtime}</em></p>
+</div>"""
+
+            # Mock PresellPage for wrapping
+            from .models import PresellPage
+            from datetime import datetime
+
+            mock_page = PresellPage(
+                offer_name=article["slug"],
+                offer_url="",
+                niche="health",
+                headline=article["title"],
+                subheadline="Expert insights for your health",
+                body_html=article_html,
+                cta_text="Learn More"
+            )
+
+            # Add to site
+            site_builder.add_article(mock_page, article_html)
+            typer.echo(f"   [{i}/{len(GENERIC_ARTICLES)}] {article['title']}")
+
+        typer.echo("\n3. Updating index...")
+        site_builder.update_index()
+        typer.echo("   [OK] Index updated with article listing")
+
+        site_path = site_builder.get_site_path()
+
+        typer.echo("\n" + "=" * 60)
+        typer.echo("WEBSITE READY!")
+        typer.echo("=" * 60)
+        typer.echo(f"Location: {site_path}")
+        typer.echo(f"\nStructure:")
+        typer.echo("  presell_site/")
+        typer.echo("  +-- index.html          (blog home)")
+        typer.echo("  +-- articles/           (8 generic + your presell pages)")
+        typer.echo("  +-- css/style.css       (responsive design)")
+        typer.echo("  +-- sitemap.html        (navigation)")
+
+        typer.echo(f"\nNative ads should link to:")
+        typer.echo(f"  https://{domain}/articles/OFFER-NAME.html")
+
+        typer.echo("\nNext steps:")
+        typer.echo("  1. Use Streamlit (Module 5) to add presell pages")
+        typer.echo("  2. Deploy to Vercel: vercel deploy presell_site/")
+        typer.echo("  3. Configure domain in DNS settings")
+        typer.echo("=" * 60 + "\n")
+
+    except Exception as e:
+        logger.error(f"Error initializing site: {e}")
+        typer.echo(f"[ERROR] {e}", err=True)
+        raise typer.Exit(1)
 
 
 @app.command()
