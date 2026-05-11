@@ -98,13 +98,13 @@ def rank(
                 indent=2,
                 default=str,
             )
-        typer.echo(f"✓ Saved JSON to {output_json}")
+        typer.echo(f"[OK] Saved JSON to {output_json}")
 
     if output_markdown:
         output_markdown.parent.mkdir(parents=True, exist_ok=True)
         with open(output_markdown, "w") as f:
             f.write(_ranked_to_markdown(ranked, budget))
-        typer.echo(f"✓ Saved Markdown to {output_markdown}")
+        typer.echo(f"[OK] Saved Markdown to {output_markdown}")
 
 
 def _print_ranked_table(ranked: list) -> None:

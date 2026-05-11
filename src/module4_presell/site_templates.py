@@ -397,4 +397,348 @@ GENERIC_ARTICLES = [
 <p>Your future cognitive health depends on the stress management decisions you make today.</p>
 """
     },
+    {
+        "slug": "hydration-brain-function",
+        "title": "Hydration and Brain Function: The Most Overlooked Cognitive Tool",
+        "content": """
+<h1>Hydration and Brain Function: The Most Overlooked Cognitive Tool</h1>
+
+<p>Your brain is 75% water. Even mild dehydration impairs cognitive function. Yet most people chronically underestimate their hydration needs.</p>
+
+<h2>Why Water Matters for the Brain</h2>
+
+<ul>
+<li>Delivers oxygen and nutrients to brain cells</li>
+<li>Removes metabolic waste products</li>
+<li>Maintains optimal neurotransmitter function</li>
+<li>Regulates body temperature (critical for brain function)</li>
+<li>Supports memory consolidation</li>
+</ul>
+
+<h2>Dehydration Effects</h2>
+
+<p>Even 2% dehydration causes:</p>
+<ul>
+<li>Reduced concentration and focus</li>
+<li>Memory impairment</li>
+<li>Slower processing speed</li>
+<li>Increased mental fatigue</li>
+<li>Mood changes and irritability</li>
+</ul>
+
+<h2>Optimal Hydration Strategy</h2>
+
+<p>Forget the "8 glasses a day" myth. A better approach:</p>
+<ul>
+<li>Drink water consistently throughout the day</li>
+<li>Monitor urine color (pale = well hydrated)</li>
+<li>Increase intake during and after exercise</li>
+<li>Include hydrating foods (fruits, vegetables)</li>
+<li>Consider electrolytes for intense workouts</li>
+</ul>
+
+<h2>The Takeaway</h2>
+
+<p>If you're experiencing brain fog or difficulty concentrating, try increasing your water intake before trying anything else. For many people, this simple change makes a dramatic difference.</p>
+"""
+    },
+    {
+        "slug": "gut-brain-connection",
+        "title": "The Gut-Brain Connection: How Digestion Affects Mental Clarity",
+        "content": """
+<h1>The Gut-Brain Connection: How Digestion Affects Mental Clarity</h1>
+
+<p>Your gut and brain are intimately connected through the "gut-brain axis." What happens in your digestive system directly impacts your cognitive function and mental health.</p>
+
+<h2>Understanding the Gut-Brain Axis</h2>
+
+<p>Your gut contains more neurons than your spinal cord. This "second brain" communicates constantly with your primary brain through various pathways, including the vagus nerve.</p>
+
+<h2>How Gut Health Affects Cognition</h2>
+
+<ul>
+<li><strong>Neurotransmitter Production:</strong> Your gut bacteria produce serotonin, GABA, and dopamine</li>
+<li><strong>Inflammation:</strong> Poor gut health increases brain inflammation</li>
+<li><strong>Nutrient Absorption:</strong> Healthy digestion ensures nutrient bioavailability</li>
+<li><strong>Immune Function:</strong> Gut health regulates brain immune responses</li>
+<li><strong>Mood Regulation:</strong> Gut dysbiosis is linked to depression and anxiety</li>
+</ul>
+
+<h2>Signs of Gut-Brain Imbalance</h2>
+
+<ul>
+<li>Brain fog and difficulty concentrating</li>
+<li>Mood swings or depression</li>
+<li>Digestive issues (bloating, constipation, diarrhea)</li>
+<li>Food sensitivities</li>
+<li>Persistent fatigue</li>
+</ul>
+
+<h2>Optimize Your Gut-Brain Health</h2>
+
+<ul>
+<li>Eat diverse, whole foods</li>
+<li>Include fermented foods (kefir, sauerkraut, kombucha)</li>
+<li>Consume prebiotic fiber (vegetables, fruit, legumes)</li>
+<li>Reduce processed foods and excess sugar</li>
+<li>Manage stress (stress damages gut health)</li>
+<li>Ensure adequate sleep</li>
+</ul>
+
+<h2>The Bottom Line</h2>
+
+<p>A healthy gut is a healthy brain. Investing in digestive health is investing in cognitive performance.</p>
+"""
+    },
+    {
+        "slug": "cognitive-training-mental-games",
+        "title": "Cognitive Training and Mental Games: Keep Your Brain Young",
+        "content": """
+<h1>Cognitive Training and Mental Games: Keep Your Brain Young</h1>
+
+<p>Use it or lose it. Your brain is like a muscle—it grows stronger with challenge and weaker with disuse. Cognitive training is one of the best ways to maintain mental sharpness.</p>
+
+<h2>Does Brain Training Work?</h2>
+
+<p>Yes—when done correctly. Research shows that challenging cognitive tasks improve memory, processing speed, and executive function. The key is progressive difficulty and variety.</p>
+
+<h2>Types of Effective Cognitive Training</h2>
+
+<h3>Memory Exercises</h3>
+<p>Memorizing sequences, names, or stories strengthens your memory systems.</p>
+
+<h3>Logic and Problem-Solving</h3>
+<p>Puzzles, chess, and logic games improve reasoning and planning.</p>
+
+<h3>Attention and Processing Speed</h3>
+<p>Games that require quick decision-making strengthen attention and reaction time.</p>
+
+<h3>Language and Learning</h3>
+<p>Learning a new language or skill creates new neural pathways.</p>
+
+<h2>Practical Brain Training Activities</h2>
+
+<ul>
+<li>Crossword puzzles and sudoku</li>
+<li>Chess or strategy games</li>
+<li>Learning a musical instrument</li>
+<li>Reading challenging material</li>
+<li>Language learning apps</li>
+<li>Memory competitions</li>
+<li>Journaling and writing</li>
+</ul>
+
+<h2>The Most Important Factor</h2>
+
+<p>Progressive difficulty is crucial. Your brain adapts to routines. To maintain benefit, gradually increase the challenge level.</p>
+
+<p>Spend 30 minutes daily on cognitive training and experience measurable improvements in mental clarity within weeks.</p>
+"""
+    },
+    {
+        "slug": "blue-light-sleep-cognition",
+        "title": "Blue Light Exposure: Impact on Sleep and Cognitive Function",
+        "content": """
+<h1>Blue Light Exposure: Impact on Sleep and Cognitive Function</h1>
+
+<p>Screens emit blue light that suppresses melatonin and disrupts your circadian rhythm. This has profound effects on both sleep quality and daytime cognitive function.</p>
+
+<h2>The Blue Light Problem</h2>
+
+<p>Blue light signals to your brain that it's daytime, suppressing melatonin production. But we're exposed to screens throughout the evening, tricking our brains into thinking it's still midday.</p>
+
+<h2>Effects on Sleep and Cognition</h2>
+
+<ul>
+<li>Delayed sleep onset and sleep disruption</li>
+<li>Reduced melatonin production</li>
+<li>Altered circadian rhythm</li>
+<li>Reduced REM sleep quality</li>
+<li>Daytime cognitive impairment from poor sleep</li>
+<li>Increased inflammation in the brain</li>
+</ul>
+
+<h2>Signs of Blue Light Disruption</h2>
+
+<ul>
+<li>Difficulty falling asleep despite being tired</li>
+<li>Poor sleep quality and frequent waking</li>
+<li>Brain fog and difficulty concentrating</li>
+<li>Persistent fatigue despite adequate sleep</li>
+<li>Mood disturbances</li>
+</ul>
+
+<h2>Strategies to Reduce Blue Light Impact</h2>
+
+<ul>
+<li>Use blue light filtering glasses in the evening</li>
+<li>Enable night mode on devices after sunset</li>
+<li>Avoid screens 60 minutes before bed</li>
+<li>Increase morning sunlight exposure</li>
+<li>Use amber-tinted lighting in the evening</li>
+<li>Keep bedroom completely dark</li>
+</ul>
+
+<h2>The Cognitive Benefit</h2>
+
+<p>By protecting your sleep from blue light disruption, you directly improve your daytime cognitive function, focus, and mental clarity.</p>
+"""
+    },
+    {
+        "slug": "meditation-mindfulness-brain",
+        "title": "Meditation and Mindfulness: Practical Ways to Strengthen Your Brain",
+        "content": """
+<h1>Meditation and Mindfulness: Practical Ways to Strengthen Your Brain</h1>
+
+<p>Meditation isn't mystical—it's neuroscience. Regular practice physically strengthens brain regions associated with attention, memory, and emotional regulation.</p>
+
+<h2>What Meditation Does to Your Brain</h2>
+
+<p>Brain imaging shows that meditation practitioners have:</p>
+<ul>
+<li>Larger hippocampus (memory center)</li>
+<li>Stronger prefrontal cortex (executive function)</li>
+<li>Reduced amygdala size (fear/stress center)</li>
+<li>Enhanced neural connections in attention networks</li>
+<li>Increased gray matter density</li>
+</ul>
+
+<h2>Cognitive Benefits</h2>
+
+<ul>
+<li>Improved attention and focus</li>
+<li>Better memory retention and recall</li>
+<li>Enhanced emotional regulation</li>
+<li>Reduced stress and anxiety</li>
+<li>Improved decision-making</li>
+<li>Greater mental resilience</li>
+</ul>
+
+<h2>Science-Backed Finding</h2>
+
+<p>Just 8 weeks of regular meditation produces measurable cognitive improvements. Even 10-20 minutes daily yields significant benefits.</p>
+
+<h2>Getting Started with Meditation</h2>
+
+<h3>Focused Attention Meditation</h3>
+<p>Focus on your breath, a word, or a sensation. When your mind wanders, gently return focus.</p>
+
+<h3>Mindfulness Meditation</h3>
+<p>Observe thoughts and sensations without judgment. This trains awareness and mental flexibility.</p>
+
+<h3>Body Scan Meditation</h3>
+<p>Systematically focus on different body parts. This builds interoceptive awareness.</p>
+
+<h2>Practical Tips</h2>
+
+<ul>
+<li>Start with just 5-10 minutes daily</li>
+<li>Use guided meditations if focusing is difficult</li>
+<li>Practice at the same time each day</li>
+<li>Be patient—benefits accumulate gradually</li>
+<li>Consistency matters more than duration</li>
+</ul>
+
+<p>Meditation is one of the most evidence-based ways to strengthen your brain. Start today.</p>
+"""
+    },
+    {
+        "slug": "supplements-cognitive-support",
+        "title": "Supplements for Brain Health: What Works and What Doesn't",
+        "content": """
+<h1>Supplements for Brain Health: What Works and What Doesn't</h1>
+
+<p>Not all supplements are created equal. Some have strong scientific support for cognitive benefits, while others lack evidence. Here's what the research actually shows.</p>
+
+<h2>Evidence-Supported Supplements</h2>
+
+<h3>Omega-3 Fatty Acids (Fish Oil)</h3>
+<p>Strong evidence for supporting brain cell structure and reducing neuroinflammation. Typical dose: 1,000-2,000mg EPA+DHA daily.</p>
+
+<h3>B Vitamins</h3>
+<p>B6, B12, and folate are essential for neurotransmitter production. Deficiency impairs cognition.</p>
+
+<h3>Magnesium</h3>
+<p>Supports neural plasticity and memory formation. Many people are deficient.</p>
+
+<h3>Antioxidants</h3>
+<p>Vitamins C and E, CoQ10, and anthocyanins protect brain cells from oxidative damage.</p>
+
+<h2>Promising but Emerging</h2>
+
+<ul>
+<li><strong>Phosphatidylserine:</strong> Shows promise for memory</li>
+<li><strong>Alpha-GPC:</strong> May support cognitive decline prevention</li>
+<li><strong>Bacopa Monnieri:</strong> Traditional herb with some cognitive support evidence</li>
+</ul>
+
+<h2>Insufficient or Lacking Evidence</h2>
+
+<p>Be cautious with supplements making dramatic cognitive claims without substantial research support.</p>
+
+<h2>Important Considerations</h2>
+
+<ul>
+<li>Supplements complement, not replace, lifestyle factors</li>
+<li>Quality varies—use reputable brands third-party tested</li>
+<li>Consult healthcare providers before starting</li>
+<li>Effects are subtle and accumulate over time</li>
+<li>Whole foods provide better nutrient bioavailability</li>
+</ul>
+
+<h2>The Bottom Line</h2>
+
+<p>Before spending money on supplements, optimize the basics: sleep, nutrition, exercise, and stress management. These provide 80% of cognitive benefits. Supplements are the additional 20%.</p>
+"""
+    },
+    {
+        "slug": "preventing-cognitive-decline-aging",
+        "title": "Preventing Cognitive Decline: Proven Strategies for Aging Well",
+        "content": """
+<h1>Preventing Cognitive Decline: Proven Strategies for Aging Well</h1>
+
+<p>Cognitive decline isn't inevitable. Research shows that people who adopt specific lifestyle strategies maintain sharp minds well into old age. Here are the evidence-based approaches.</p>
+
+<h2>The Prevention Paradox</h2>
+
+<p>The best time to prevent cognitive decline is decades before it might occur. The practices that prevent decline in your 70s begin in your 40s and 50s.</p>
+
+<h2>The Evidence-Based Foundation</h2>
+
+<h3>1. Physical Exercise (Most Important)</h3>
+<p>Regular aerobic exercise is one of the strongest predictors of maintained cognitive function. Aim for 150 minutes weekly.</p>
+
+<h3>2. Quality Sleep</h3>
+<p>Consistent, deep sleep is when your brain clears toxins. Sleep deprivation accelerates cognitive decline.</p>
+
+<h3>3. Cognitive Engagement</h3>
+<p>Keep learning. Education and mental challenges maintain cognitive reserves.</p>
+
+<h3>4. Social Connection</h3>
+<p>Meaningful relationships and social engagement protect against cognitive decline.</p>
+
+<h3>5. Mediterranean Diet</h3>
+<p>This dietary pattern consistently shows cognitive protection benefits.</p>
+
+<h2>Additional Protective Factors</h2>
+
+<ul>
+<li>Managing cardiovascular health (heart and brain health are linked)</li>
+<li>Managing blood pressure and cholesterol</li>
+<li>Stress management</li>
+<li>Avoiding smoking and excessive alcohol</li>
+<li>Managing weight and blood sugar</li>
+</ul>
+
+<h2>The "Cognitive Reserve" Concept</h2>
+
+<p>Your brain builds cognitive reserve through education, mental challenge, and enriching experiences. Higher reserve provides protection against age-related decline.</p>
+
+<h2>Starting Now</h2>
+
+<p>It's never too late to start, but earlier is better. Someone who begins cognitive decline prevention at 50 will maintain better function at 80 than someone who waits until 70.</p>
+
+<p>The time to act is now. These strategies work best when implemented today, not tomorrow.</p>
+"""
+    },
 ]

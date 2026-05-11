@@ -85,28 +85,29 @@ class CSVImporter:
             ValueError: If required fields are missing or invalid.
         """
         # Extract required fields (with fallbacks for column name variants)
-        offer_id = row.get("id") or row.get("offer_id")
+        # MaxWeb uses account_id, also check for id / offer_id
+        offer_id = row.get("account_id") or row.get("id") or row.get("offer_id")
         name = row.get("name") or row.get("offer_name")
 
         if not offer_id or not name:
             raise ValueError("Missing required fields: id and/or name")
 
-        # Parse payout (try multiple column names)
-        payout_str = row.get("payout") or row.get("commission")
+        # Parse payout (MaxWeb: avg_payout, fallback: payout, commission)
+        payout_str = row.get("avg_payout") or row.get("payout") or row.get("commission")
         try:
             payout = float(payout_str) if payout_str else 0.0
         except ValueError:
             raise ValueError(f"Invalid payout value: {payout_str}")
 
-        # Parse EPC
-        epc_str = row.get("epc") or row.get("earnings_per_click")
+        # Parse EPC (MaxWeb: epc_alltime, fallback: epc, earnings_per_click)
+        epc_str = row.get("epc_alltime") or row.get("epc") or row.get("earnings_per_click")
         try:
             epc = float(epc_str) if epc_str else 0.0
         except ValueError:
             raise ValueError(f"Invalid EPC value: {epc_str}")
 
-        # Parse refund rate (as percentage)
-        refund_str = row.get("refund_rate") or row.get("refund")
+        # Parse refund rate (MaxWeb: refundrate_alltime, fallback: refund_rate, refund)
+        refund_str = row.get("refundrate_alltime") or row.get("refund_rate") or row.get("refund")
         try:
             refund_rate = float(refund_str) if refund_str else 0.0
         except ValueError:

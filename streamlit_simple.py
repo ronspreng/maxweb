@@ -24,6 +24,36 @@ from src.module4_presell.site_builder import PresellSiteBuilder
 # Load .env at startup
 load_dotenv()
 
+# ===== AUTHENTICATION (HF Spaces) =====
+def check_authentication() -> bool:
+    """Check if user is authenticated via password."""
+    auth_enabled = os.getenv("STREAMLIT_AUTH_ENABLED", "false").lower() == "true"
+    if not auth_enabled:
+        return True
+
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+
+    if not st.session_state.authenticated:
+        st.set_page_config(page_title="MaxWeb System - Login", layout="centered")
+        st.title("MaxWeb Affiliate System")
+        st.write("**Secure Access Required**")
+
+        password = st.text_input("Enter password:", type="password")
+        if st.button("Login"):
+            correct_password = os.getenv("STREAMLIT_PASSWORD", "change_me_in_hf_secrets")
+            if password == correct_password:
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("Incorrect password")
+        return False
+
+    return True
+
+if not check_authentication():
+    st.stop()
+
 # Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -369,13 +399,7 @@ with tabs[4]:
     st.header("Step 5: Pre-sell Page Generation")
     st.write("Add presell page to your presell website")
 
-    st.info("""
-    **Setup (one-time):**
-    ```
-    python -m src.module4_presell init-site --domain your-domain.com
-    ```
-    This creates a website with 8 generic health articles ready for presell pages.
-    """)
+    st.success("✓ Website is ready! (8 generic articles + compliance pages)")
 
     if st.session_state.selected_offer:
         st.success(f"📌 Offer: **{st.session_state.selected_offer}**")
