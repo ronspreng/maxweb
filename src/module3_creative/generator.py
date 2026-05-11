@@ -1,195 +1,133 @@
-"""Generate native ad creative variations using Claude API."""
-
+"""Generate native ad creatives using Claude Haiku."""
 import json
 import logging
 import os
 from pathlib import Path
 
 from anthropic import Anthropic
-from dotenv import load_dotenv
 
-from ..module4_presell.generator import AdvertorialGenerator
 from .models import CreativeSet, NativeAdCreative
-
-# Load .env explicitly
-_env_file = Path(__file__).parent.parent.parent.parent / ".env"
-if _env_file.exists():
-    load_dotenv(_env_file)
 
 logger = logging.getLogger(__name__)
 
 
 class CreativeGenerator:
-    """Generate native ad creative variations using Claude Haiku."""
+    """Generate native ad headlines + descriptions for MGID/Taboola."""
 
     def __init__(self):
-        api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-        if not api_key:
-            raise RuntimeError("ANTHROPIC_API_KEY not set")
-        self.client = Anthropic(api_key=api_key)
+        self.client = Anthropic()
+        self.model = "claude-3-5-haiku-20241022"
 
     def generate(
         self,
         offer_name: str,
         niche: str,
-        auto_load_report: bool = True,
-        vsl_angle: str | None = None,
+        report: dict | None = None,
+        auto_load: bool = True,
     ) -> CreativeSet:
-        """
-        Generate multiple creative variations for an offer.
+        """Generate 8 native ad creatives.
 
         Args:
-            offer_name: Name of the offer (e.g. "Brain Boost Pro")
-            niche: Target niche (e.g. "brain-health")
-            auto_load_report: If True, try to load Module 2 report for patterns
+            offer_name: Name of the offer (e.g., "Gluco Savior")
+            niche: Target niche (e.g., "health")
+            report: Optional Module 2 competitive report (dict)
+            auto_load: Try auto-load report from /output/ if not provided
 
         Returns:
-            CreativeSet with 8 headline + description pairs
+            CreativeSet with 8-10 creatives
         """
-        logger.info(f"[creative] Generating creatives for {offer_name} ({niche})")
+        # Try load report if not provided
+        if report is None and auto_load:
+            report = self._load_report(offer_name)
 
-        # Try to load Module 2 report for context
-        report = None
-        report_used = False
-        if auto_load_report:
-            report = AdvertorialGenerator.load_report(niche)
-            if report:
-                report_used = True
-                logger.info(f"[creative] Using Module 2 patterns ({len(report.top_hooks)} hooks)")
-            else:
-                logger.info(f"[creative] No report found, using generic approach")
+        # Build prompt
+        prompt = self._build_prompt(offer_name, niche, report)
 
-        # Build context
-        context = self._build_context(report, niche, vsl_angle)
-
-        # Prompt Claude for creatives
-        response = self.client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=2000,
-            system="You are an expert native ad copywriter. Create compelling headlines and descriptions for MGID/Taboola native ads. Keep headlines max 60 chars, descriptions max 150 chars. Respond with valid JSON only.",
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"""
-Generate 8 native ad creative variations for {offer_name} ({niche}).
-Create 2 variations for each hook type below.
-
-Hook types and examples:
-- curiosity: "This One Trick...", "Doctors Hate This Simple Trick..."
-- fear: "Brain Fog? Read This Before...", "Warning: Your Supplements May Not..."
-- authority: "Doctor Reveals...", "Scientists Discovered..."
-- social_proof: "Millions Are Switching To...", "Join 500K Who Already..."
-
-{context}
-
-Important constraints:
-- Headline: max 60 characters
-- Description: max 150 characters
-- Each description should be 2-3 sentences
-
-Output ONLY valid JSON (no markdown, no code blocks):
-{{
-  "creatives": [
-    {{"headline": "...", "description": "...", "hook_type": "curiosity"}},
-    {{"headline": "...", "description": "...", "hook_type": "curiosity"}},
-    {{"headline": "...", "description": "...", "hook_type": "fear"}},
-    {{"headline": "...", "description": "...", "hook_type": "fear"}},
-    {{"headline": "...", "description": "...", "hook_type": "authority"}},
-    {{"headline": "...", "description": "...", "hook_type": "authority"}},
-    {{"headline": "...", "description": "...", "hook_type": "social_proof"}},
-    {{"headline": "...", "description": "...", "hook_type": "social_proof"}}
-  ]
-}}
-""",
-                }
-            ],
+        # Call Claude Haiku
+        message = self.client.messages.create(
+            model=self.model,
+            max_tokens=1000,
+            messages=[{"role": "user", "content": prompt}],
         )
 
         # Parse response
-        raw_output = response.content[0].text.strip()
-        logger.debug(f"[creative] Claude response: {raw_output[:200]}...")
+        response_text = message.content[0].text
+        creatives = self._parse_response(response_text)
 
-        # Strip markdown code blocks
-        cleaned = raw_output
-        if cleaned.startswith("```"):
-            cleaned = cleaned.split("```", 2)[1]
-            if cleaned.startswith("json"):
-                cleaned = cleaned[4:]
-            cleaned = cleaned.rsplit("```", 1)[0]
-        cleaned = cleaned.strip()
-
-        try:
-            data = json.loads(cleaned)
-        except json.JSONDecodeError as e:
-            logger.error(f"[creative] Invalid JSON from Claude: {e}")
-            logger.error(f"[creative] Raw: {cleaned[:500]}")
-            raise ValueError(f"Claude returned invalid JSON: {e}")
-
-        # Build CreativeSet
-        creatives = []
-        for c_dict in data.get("creatives", []):
-            try:
-                creative = NativeAdCreative(
-                    headline=c_dict.get("headline", "")[:60],
-                    description=c_dict.get("description", "")[:150],
-                    hook_type=c_dict.get("hook_type", "story"),
-                )
-                creatives.append(creative)
-            except Exception as e:
-                logger.debug(f"[creative] Parse error: {e}")
-
-        creative_set = CreativeSet(
+        return CreativeSet(
             offer_name=offer_name,
             niche=niche,
             creatives=creatives,
-            report_used=report_used,
+            report_used=(report is not None),
         )
 
-        logger.info(f"[creative] Generated {len(creative_set.creatives)} creatives")
-        return creative_set
+    def _load_report(self, offer_name: str) -> dict | None:
+        """Load Module 2 report from /output/."""
+        output_dir = Path("output") / "reports"
+        if not output_dir.exists():
+            return None
 
-    def _build_context(self, report, niche: str, vsl_angle: str | None = None) -> str:
-        """Build context string from competitive report and VSL angle."""
-        context_lines = []
+        # Look for report file matching offer name
+        for report_file in output_dir.glob("*.json"):
+            try:
+                with open(report_file) as f:
+                    data = json.load(f)
+                    if data.get("offer") == offer_name:
+                        logger.info(f"Loaded report: {report_file}")
+                        return data
+            except (json.JSONDecodeError, IOError):
+                continue
 
-        # Prioritize VSL angle if provided
-        if vsl_angle:
-            context_lines.extend([
-                "CRITICAL: The MaxWeb VSL uses this main angle:",
-                f"'{vsl_angle}'",
-                "Your native ads MUST lead readers toward this angle/promise.",
-                "",
-            ])
+        return None
 
-        if not report:
-            msg = "No competitive patterns available. Use general best practices for health/supplement niches."
-            if vsl_angle:
-                msg += f" Ensure ads support the VSL angle: {vsl_angle}"
-            context_lines.append(msg)
-            return "\n".join(context_lines)
+    def _build_prompt(self, offer_name: str, niche: str, report: dict | None) -> str:
+        """Build prompt for Claude."""
+        base = f"""Generate 8 native ad creatives for MGID/Taboola.
 
-        context_lines.extend([
-            "Winning patterns from Module 2 analysis:",
-            "",
-            "Top hooks (use to support the VSL angle):",
-        ])
+Offer: {offer_name}
+Niche: {niche}
 
-        for hook in report.top_hooks[:3]:
-            context_lines.append(f"- {hook.value}")
+Requirements:
+- Headline: max 60 chars
+- Description: max 150 chars
+- 2 per hook type: curiosity, fear, authority, social_proof, story
+- Hook types create psychological engagement angles
+- Native ads mimic editorial/social content
 
-        context_lines.append("")
-        context_lines.append("Top emotional triggers:")
-        for trigger in report.top_emotional_triggers[:3]:
-            context_lines.append(f"- {trigger.value}")
+Output format (JSON):
+{{"creatives": [{{"headline": "...", "description": "...", "hook_type": "..."}}]}}
+"""
 
-        context_lines.append("")
-        context_lines.append("Power words to use:")
-        words = ", ".join(p.value for p in report.top_power_words[:5])
-        context_lines.append(f"- {words}")
+        if report:
+            patterns = report.get("winning_patterns", [])
+            if patterns:
+                base += f"\nWinning patterns from competitors:\n"
+                for p in patterns[:3]:
+                    base += f"- {p}\n"
 
-        context_lines.append("")
-        context_lines.append("Fresh angles to explore:")
-        for angle in report.recommended_angles[:2]:
-            context_lines.append(f"- {angle}")
+        return base
 
-        return "\n".join(context_lines)
+    def _parse_response(self, response_text: str) -> list[NativeAdCreative]:
+        """Parse JSON from Claude response."""
+        # Strip markdown code blocks if present
+        if "```" in response_text:
+            response_text = response_text.split("```")[1]
+            if response_text.startswith("json"):
+                response_text = response_text[4:]
+            response_text = response_text.rstrip("`")
+
+        data = json.loads(response_text.strip())
+        creatives = []
+
+        for item in data.get("creatives", []):
+            try:
+                creative = NativeAdCreative(
+                    headline=item["headline"],
+                    description=item["description"],
+                    hook_type=item["hook_type"],
+                )
+                creatives.append(creative)
+            except (KeyError, ValueError) as e:
+                logger.warning(f"Skipped invalid creative: {e}")
+
+        return creatives
