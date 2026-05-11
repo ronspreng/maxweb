@@ -58,17 +58,27 @@ if not check_authentication():
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Force reload ANTHROPIC_API_KEY directly from .env file
+# Load API key from environment
 def _load_api_key():
-    """Read API key directly from .env file."""
-    env_file = Path(__file__).parent / ".env"
-    if env_file.exists():
-        with open(env_file) as f:
-            for line in f:
-                if line.startswith("ANTHROPIC_API_KEY="):
-                    key = line.split("=", 1)[1].strip()
-                    os.environ["ANTHROPIC_API_KEY"] = key
-                    return key
+    """Load API key from environment or .env file."""
+    # Try environment first (works on Streamlit Cloud)
+    if "ANTHROPIC_API_KEY" in os.environ:
+        return os.environ["ANTHROPIC_API_KEY"]
+
+    # Fallback to .env file (local development)
+    try:
+        from pathlib import Path
+        env_file = Path(".env")
+        if env_file.exists():
+            with open(env_file) as f:
+                for line in f:
+                    if line.startswith("ANTHROPIC_API_KEY="):
+                        key = line.split("=", 1)[1].strip()
+                        os.environ["ANTHROPIC_API_KEY"] = key
+                        return key
+    except Exception:
+        pass
+
     return None
 
 _load_api_key()
