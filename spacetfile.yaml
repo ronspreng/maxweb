@@ -1,0 +1,7 @@
+title: MaxWeb Affiliate System
+description: Offer ranking, competitive analysis, creative generation, presell builder
+sdk: streamlit
+sdk_version: "1.37.0"
+python_version: "3.11"
+app_file: streamlit_app.py
+pinned: false
