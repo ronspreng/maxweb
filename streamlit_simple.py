@@ -20,6 +20,7 @@ from src.module3_creative.generator import CreativeGenerator
 from src.module4_presell.generator import AdvertorialGenerator
 from src.module4_presell.builder import AdvertorialBuilder
 from src.module4_presell.site_builder import PresellSiteBuilder
+from src.module4_presell.publisher import PresellPublisher
 
 # Load .env at startup
 load_dotenv()
@@ -467,10 +468,26 @@ with tabs[4]:
                     `output/presell_site/articles/{article_path.name}`
 
                     **URL will be:**
-                    `https://your-domain.com/articles/{article_path.stem}.html`
-
-                    Continue adding more presell pages, then deploy the entire `presell_site/` folder.
+                    `https://presellsite.vercel.app/articles/{article_path.stem}.html`
                     """)
+
+                    # Publish to GitHub button
+                    col1, col2 = st.columns([1, 3])
+                    with col1:
+                        if st.button("🚀 Publish to Website", type="primary", key="presell_publish_btn"):
+                            with st.spinner("Publishing to GitHub..."):
+                                success = PresellPublisher.publish_to_website(
+                                    offer_slug=article_path.stem,
+                                    html_content=html_content,
+                                    commit_message=f"Add presell: {st.session_state.selected_offer}",
+                                    auto_push=True
+                                )
+                                if success:
+                                    st.success("✓ Published to GitHub! Vercel will redeploy in ~30s.")
+                                else:
+                                    st.error("Failed to publish. Check logs.")
+                    with col2:
+                        st.info("Vercel auto-deploys when files push to GitHub → live in ~30 seconds")
 
                 except Exception as e:
                     st.error(f"Error: {e}")
