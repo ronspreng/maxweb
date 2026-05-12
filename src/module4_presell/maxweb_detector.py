@@ -4,12 +4,21 @@ import json
 import logging
 import os
 import re
+import time
 from pathlib import Path
 from typing import Optional
+from urllib.parse import quote
 
 import requests
 from anthropic import Anthropic
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+
+try:
+    from playwright.sync_api import sync_playwright
+    HAS_PLAYWRIGHT = True
+except ImportError:
+    HAS_PLAYWRIGHT = False
 
 _env_file = Path(__file__).parent.parent.parent.parent / ".env"
 if _env_file.exists():
@@ -26,8 +35,130 @@ class MaxWebDetector:
         if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY not set")
         self.client = Anthropic(api_key=api_key)
+        self.maxweb_email = os.environ.get("MAXWEB_EMAIL", "")
+        self.maxweb_password = os.environ.get("MAXWEB_PASSWORD", "")
 
-    def detect(self, maxweb_url: str) -> Optional[dict]:
+    def detect(self, offer_name: str) -> Optional[dict]:
+        """
+        Detect VSL angle from MaxWeb offer.
+
+        Args:
+            offer_name: Name of the offer (e.g. "Brain Memory Keeper")
+
+        Returns:
+            Dict with VSL angle details, or None if not found
+        """
+        # Try to find the MaxWeb URL first
+        maxweb_url = self.find_maxweb_url(offer_name)
+
+        if not maxweb_url:
+            logger.warning(f"[maxweb] Could not find URL for {offer_name}")
+            return None
+
+        return self._detect_from_url(maxweb_url)
+
+    def find_maxweb_url(self, offer_name: str) -> Optional[str]:
+        """Find MaxWeb offer URL by name."""
+        logger.info(f"[maxweb] Searching for: {offer_name}")
+
+        # Strategy 1: Try direct URL pattern
+        slug = self._slugify(offer_name)
+        direct_url = f"https://maxweb.com/offer/{slug}"
+
+        if self._url_exists(direct_url):
+            logger.info(f"[maxweb] Found via direct pattern: {direct_url}")
+            return direct_url
+
+        # Strategy 2: Playwright scraping of MaxWeb search
+        if HAS_PLAYWRIGHT:
+            try:
+                url = self._search_maxweb_playwright(offer_name)
+                if url:
+                    logger.info(f"[maxweb] Found via Playwright: {url}")
+                    return url
+            except Exception as e:
+                logger.warning(f"[maxweb] Playwright search failed: {e}")
+
+        # Strategy 3: Google search
+        try:
+            url = self._search_google(offer_name)
+            if url:
+                logger.info(f"[maxweb] Found via Google: {url}")
+                return url
+        except Exception as e:
+            logger.warning(f"[maxweb] Google search failed: {e}")
+
+        return None
+
+    def _slugify(self, text: str) -> str:
+        """Convert text to URL slug."""
+        return re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')
+
+    def _url_exists(self, url: str) -> bool:
+        """Check if URL is accessible."""
+        try:
+            response = requests.head(url, timeout=5, allow_redirects=True)
+            return response.status_code < 400
+        except:
+            return False
+
+    def _search_maxweb_playwright(self, offer_name: str) -> Optional[str]:
+        """Use Playwright to find offer on MaxWeb."""
+        if not HAS_PLAYWRIGHT:
+            return None
+
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page()
+                page.goto("https://maxweb.com/offers")
+                time.sleep(2)
+
+                # Search for offer
+                page.fill("input[placeholder*='search' i]", offer_name)
+                page.press("input", "Enter")
+                time.sleep(2)
+
+                # Get first result link
+                links = page.query_selector_all("a[href*='/offer/']")
+                if links:
+                    href = links[0].get_attribute("href")
+                    browser.close()
+                    if href.startswith("/"):
+                        return f"https://maxweb.com{href}"
+                    return href
+
+                browser.close()
+        except Exception as e:
+            logger.debug(f"[maxweb] Playwright error: {e}")
+
+        return None
+
+    def _search_google(self, offer_name: str) -> Optional[str]:
+        """Search Google for MaxWeb offer link."""
+        try:
+            query = f'"{offer_name}" site:maxweb.com/offer'
+            url = f"https://www.google.com/search?q={quote(query)}"
+
+            response = requests.get(url, timeout=10, headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            })
+
+            soup = BeautifulSoup(response.text, "html.parser")
+            for link in soup.find_all("a"):
+                href = link.get("href", "")
+                if "maxweb.com/offer/" in href:
+                    # Extract clean URL from Google redirect
+                    if "/url?q=" in href:
+                        href = href.split("/url?q=")[1].split("&")[0]
+                    return href
+
+        except Exception as e:
+            logger.debug(f"[maxweb] Google search error: {e}")
+
+        return None
+
+    def _detect_from_url(self, maxweb_url: str) -> Optional[dict]:
         """
         Detect VSL angle from MaxWeb offer page.
 
