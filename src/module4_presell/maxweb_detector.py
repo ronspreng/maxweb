@@ -20,7 +20,7 @@ try:
 except ImportError:
     HAS_PLAYWRIGHT = False
 
-_env_file = Path(__file__).parent.parent.parent.parent / ".env"
+_env_file = Path(__file__).parent.parent.parent / ".env"
 if _env_file.exists():
     load_dotenv(_env_file)
 
