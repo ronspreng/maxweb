@@ -716,7 +716,7 @@ with tabs[4]:
                                 offer_slug=path.stem,
                                 html_content=html,
                                 commit_message=f"Add presell: {st.session_state.selected_offer}",
-                                auto_push=False
+                                auto_push=True
                             )
                             if not success:
                                 st.error(f"Failed to publish {path.name}")
