@@ -22,6 +22,9 @@ from src.module4_presell.generator import AdvertorialGenerator
 from src.module4_presell.builder import AdvertorialBuilder
 from src.module4_presell.site_builder import PresellSiteBuilder
 from src.module4_presell.publisher import PresellPublisher
+from src.module5_feedback.scraper import ClickHubScraper
+from src.module5_feedback.analyzer import CampaignAnalyzer
+from src.module5_feedback.reporter import CampaignReporter
 
 # Load .env at startup
 load_dotenv()
@@ -97,13 +100,14 @@ if "vsl_info" not in st.session_state:
 if "ranked_offers" not in st.session_state:
     st.session_state.ranked_offers = None
 
-# 5-tab workflow
+# 6-tab workflow
 tabs = st.tabs([
     "1. Ranking (Module 1)",
     "2. VSL Detection (Module 4A)",
     "3. Competition (Module 2)",
     "4. Creatives (Module 3)",
-    "5. Pre-sell (Module 4B)"
+    "5. Pre-sell (Module 4B)",
+    "6. Analytics (Module 5)"
 ])
 
 # ===== TAB 1: OFFER RANKING =====
@@ -522,3 +526,104 @@ with tabs[4]:
                 except Exception as e:
                     st.error(f"Error: {e}")
                     logger.error(f"Presell error: {e}")
+
+
+# ===== TAB 6: ANALYTICS (MODULE 5) =====
+with tabs[5]:
+    st.header("Step 6: Campaign Analytics & Optimization")
+    st.write("Analyze ClickHub campaign data and get optimization recommendations")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        campaign_name = st.text_input(
+            "Campaign Name (from ClickHub)",
+            placeholder="e.g., Gluco Savior",
+            key="analytics_campaign_name"
+        )
+    with col2:
+        days = st.slider("Days to analyze", min_value=1, max_value=90, value=7, key="analytics_days")
+
+    if st.button("📊 Analyze Campaign", type="primary", key="analytics_analyze_btn"):
+        if not campaign_name:
+            st.error("Please enter campaign name")
+        else:
+            with st.spinner("Connecting to ClickHub and fetching data..."):
+                try:
+                    # Scrape ClickHub
+                    scraper = ClickHubScraper()
+                    if not scraper.login():
+                        st.error("Failed to login to ClickHub. Check credentials in .env")
+                    else:
+                        analysis = scraper.analyze_campaign(campaign_name, days=days)
+
+                        if not analysis:
+                            st.error(f"Campaign '{campaign_name}' not found in ClickHub")
+                        else:
+                            # Show summary
+                            st.success(f"✓ Loaded: {campaign_name}")
+
+                            col1, col2, col3, col4 = st.columns(4)
+                            with col1:
+                                st.metric("Clicks", f"{analysis.total_clicks:,}")
+                            with col2:
+                                st.metric("Conversions", f"{analysis.total_conversions:,}")
+                            with col3:
+                                st.metric("Spend", f"${analysis.total_spend:,.2f}")
+                            with col4:
+                                roi_color = "green" if analysis.overall_roi > 0 else "red"
+                                st.metric("ROI", f"{analysis.overall_roi:.1f}%")
+
+                            st.write("---")
+
+                            # Generate recommendations
+                            analyzer = CampaignAnalyzer(roi_target=20.0)
+                            recommendations = analyzer.analyze(analysis)
+
+                            if recommendations:
+                                st.subheader("🎯 Recommendations")
+
+                                for action in ["scale", "optimize", "kill", "maintain"]:
+                                    action_recs = [r for r in recommendations if r.action == action]
+                                    if action_recs:
+                                        with st.expander(f"{action.upper()} ({len(action_recs)})"):
+                                            for rec in action_recs:
+                                                icon = "🚀" if action == "scale" else "⚙️" if action == "optimize" else "🔴" if action == "kill" else "✓"
+                                                st.write(f"{icon} **{rec.sub_id}**")
+                                                st.write(f"   {rec.reason}")
+                                                st.write(f"   Current {rec.metric}: {rec.current_value:.1f}%")
+                            else:
+                                st.info("Need more data to generate recommendations. (Minimum 50 clicks per variant)")
+
+                            # Show all Sub-IDs table
+                            st.subheader("📊 All Variants (Sub-IDs)")
+                            df_sub_ids = pd.DataFrame([
+                                {
+                                    "Sub-ID": sid.sub_id,
+                                    "Clicks": sid.clicks,
+                                    "Conversions": sid.conversions,
+                                    "Revenue": f"${sid.revenue:.2f}",
+                                    "Spend": f"${sid.spend:.2f}",
+                                    "ROI": f"{sid.roi:.1f}%",
+                                    "CPA": f"${sid.cpa:.2f}",
+                                    "EPC": f"${sid.epc:.2f}",
+                                }
+                                for sid in sorted(analysis.sub_ids, key=lambda x: x.roi, reverse=True)
+                            ])
+                            st.dataframe(df_sub_ids, use_container_width=True)
+
+                            # Generate and download report
+                            st.write("---")
+                            report = CampaignReporter.generate_markdown(analysis, recommendations)
+
+                            st.download_button(
+                                label="📥 Download Full Report (Markdown)",
+                                data=report,
+                                file_name=f"campaign_analysis_{campaign_name.lower().replace(' ', '_')}_{days}d.md",
+                                mime="text/markdown",
+                                key="analytics_download_report"
+                            )
+                            st.info("Report includes all metrics, rankings, and recommendations")
+
+                except Exception as e:
+                    st.error(f"Error: {e}")
+                    logger.error(f"Analytics error: {e}")
