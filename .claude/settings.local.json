@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"exec\\(open\\('streamlit_simple.py'\\).read\\(\\)\\)\")"
+    ]
+  }
+}

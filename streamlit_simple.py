@@ -17,6 +17,7 @@ from src.module2_competitive.analyzer import PatternAnalyzer
 from src.module2_competitive.models import NativeAd
 from src.module2_competitive.reporter import IntelReporter
 from src.module3_creative.generator import CreativeGenerator
+from src.module3_creative.exporter import CreativeExporter
 from src.module4_presell.generator import AdvertorialGenerator
 from src.module4_presell.builder import AdvertorialBuilder
 from src.module4_presell.site_builder import PresellSiteBuilder
@@ -388,14 +389,43 @@ with tabs[3]:
                     df = pd.DataFrame(df_data)
                     st.dataframe(df, use_container_width=True)
 
-                    csv_content = df.to_csv(index=False)
-                    st.download_button(
-                        label="Download CSV",
-                        data=csv_content,
-                        file_name=f"creatives_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{creative_set.generated_at.strftime('%Y%m%d')}.csv",
-                        mime="text/csv",
-                        key="creative_download_csv"
-                    )
+                    st.write("---")
+                    st.subheader("📤 Export for Ad Platforms")
+
+                    col1, col2, col3 = st.columns(3)
+
+                    with col1:
+                        mgid_csv = CreativeExporter.to_mgid_csv(creative_set)
+                        st.download_button(
+                            label="📌 MGID Format",
+                            data=mgid_csv,
+                            file_name=f"mgid_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{creative_set.generated_at.strftime('%Y%m%d')}.csv",
+                            mime="text/csv",
+                            key="creative_export_mgid"
+                        )
+                        st.caption("Copy-paste into MGID dashboard")
+
+                    with col2:
+                        taboola_csv = CreativeExporter.to_taboola_csv(creative_set)
+                        st.download_button(
+                            label="🎯 Taboola Format",
+                            data=taboola_csv,
+                            file_name=f"taboola_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{creative_set.generated_at.strftime('%Y%m%d')}.csv",
+                            mime="text/csv",
+                            key="creative_export_taboola"
+                        )
+                        st.caption("Copy-paste into Taboola dashboard")
+
+                    with col3:
+                        generic_csv = CreativeExporter.to_generic_csv(creative_set)
+                        st.download_button(
+                            label="📋 Full CSV",
+                            data=generic_csv,
+                            file_name=f"creatives_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{creative_set.generated_at.strftime('%Y%m%d')}.csv",
+                            mime="text/csv",
+                            key="creative_export_generic"
+                        )
+                        st.caption("All details for reference")
 
                     st.success("✓ Ads generated aligned with VSL angle!")
                     st.info("Go to Step 5 (Pre-sell) to build the landing page →")
