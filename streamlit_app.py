@@ -4,6 +4,7 @@ import logging
 import os
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -111,21 +112,107 @@ tabs = st.tabs([
 ])
 
 # ===== TAB 1: OFFER RANKING =====
+CAMPAIGNS_CSV = Path("data/campaigns.csv")
+SCRAPER_PATH = Path(".claude/skills/maxweb-campaigns/scripts/maxweb_scraper.py")
+
+
+def _age_str(mtime: datetime) -> str:
+    age = datetime.now() - mtime
+    s = age.total_seconds()
+    if s < 60:
+        return "zojuist"
+    if s < 3600:
+        return f"{int(s // 60)} min geleden"
+    if s < 86400:
+        return f"{int(s // 3600)} uur geleden"
+    return f"{age.days} dag(en) geleden"
+
+
 with tabs[0]:
     st.header("Step 1: Offer Ranking")
-    st.write("Upload MaxWeb offers and rank by potential")
+    st.write("Rank MaxWeb offers by potential — live van de API of upload een eigen CSV")
 
-    uploaded_file = st.file_uploader("Upload MaxWeb CSV", type="csv")
+    # --- Refresh-from-MaxWeb-bar ---
+    status_col, refresh_col = st.columns([3, 1])
+
+    with status_col:
+        if CAMPAIGNS_CSV.exists():
+            _mtime = datetime.fromtimestamp(CAMPAIGNS_CSV.stat().st_mtime)
+            st.caption(
+                f"`data/campaigns.csv` — laatst ververst **{_age_str(_mtime)}** "
+                f"({_mtime.strftime('%a %d %b %H:%M')})"
+            )
+        else:
+            st.caption(
+                "Nog geen `data/campaigns.csv` — klik **Refresh from MaxWeb** om "
+                "voor het eerst te scrapen."
+            )
+        if st.session_state.get("scrape_status") == "ok":
+            st.success("Scrape geslaagd")
+        elif st.session_state.get("scrape_status") == "expired":
+            st.error(
+                "Cookies verlopen. Refresh `MAXWEB_SESSID3` (en evt. `MAXWEB_TRUST2FA`) "
+                "in je `.env` - DevTools -> Application -> Cookies."
+            )
+        elif st.session_state.get("scrape_status") == "error":
+            st.error("Scraper-fout - zie details.")
+
+    with refresh_col:
+        st.write("")  # vertical spacer
+        if st.button("Refresh from MaxWeb", type="primary", key="refresh_maxweb"):
+            with st.spinner("Scraper draait..."):
+                try:
+                    _result = subprocess.run(
+                        [sys.executable, str(SCRAPER_PATH)],
+                        cwd=str(Path.cwd()),
+                        capture_output=True,
+                        text=True,
+                        timeout=60,
+                    )
+                    st.session_state.scrape_stdout = _result.stdout
+                    if _result.returncode == 0:
+                        st.session_state.scrape_status = "ok"
+                        st.session_state.scrape_error = None
+                    else:
+                        _err = (_result.stderr or _result.stdout).strip()
+                        if "401" in _err or "Unauthorized" in _err:
+                            st.session_state.scrape_status = "expired"
+                        else:
+                            st.session_state.scrape_status = "error"
+                        st.session_state.scrape_error = _err
+                except subprocess.TimeoutExpired:
+                    st.session_state.scrape_status = "error"
+                    st.session_state.scrape_error = "Scraper timeout (60s)"
+                except Exception as _e:
+                    st.session_state.scrape_status = "error"
+                    st.session_state.scrape_error = f"{type(_e).__name__}: {_e}"
+            st.rerun()
+
+    if st.session_state.get("scrape_error"):
+        with st.expander("Foutdetails laatste scrape", expanded=False):
+            st.code(st.session_state.scrape_error[:3000])
+
+    # --- Upload als fallback ---
+    with st.expander("Of: upload een eigen CSV", expanded=False):
+        uploaded_file = st.file_uploader("Upload MaxWeb CSV", type="csv")
+
     budget = st.number_input("Budget ($)", value=200.0, min_value=50.0)
 
+    # --- Bron-CSV bepalen: upload > scrape-output ---
+    source_csv = None
+    temp_path = None
     if uploaded_file:
         temp_path = Path("temp_upload.csv")
         with open(temp_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
+        source_csv = temp_path
+    elif CAMPAIGNS_CSV.exists():
+        source_csv = CAMPAIGNS_CSV
 
+    if source_csv:
         if st.button("Rank Offers", key="rank_btn"):
             with st.spinner("Ranking..."):
-                offers = CSVImporter.import_csv(temp_path)
+                offers = CSVImporter.import_csv(source_csv)
                 ranker = OfferRanker(budget_usd=budget)
                 st.session_state.ranked_offers = ranker.rank_offers(offers)
                 st.session_state.selected_offers = []
@@ -186,11 +273,35 @@ with tabs[0]:
 
             if st.session_state.selected_offer:
                 st.success(f"✓ Selected: **{st.session_state.selected_offer}**")
-                st.info("Go to Step 2 (VSL Detection) to continue →")
 
-        temp_path.unlink(missing_ok=True)
+                # Auto-detect VSL
+                col1, col2 = st.columns([1, 3])
+                with col1:
+                    if st.button("🔍 Auto-detect VSL", type="primary", key="auto_detect_vsl"):
+                        with st.spinner("Searching MaxWeb for VSL..."):
+                            try:
+                                detector = MaxWebDetector()
+                                vsl_info = detector.detect(st.session_state.selected_offer)
+
+                                if vsl_info:
+                                    st.session_state.vsl_info = vsl_info
+                                    st.success(f"✓ Found VSL: {vsl_info['angle']}")
+                                    st.info("Go to Step 2 to confirm and continue →")
+                                else:
+                                    st.warning("Could not find VSL. Enter manually in Step 2.")
+                            except Exception as e:
+                                st.error(f"Error: {e}")
+
+                with col2:
+                    if st.session_state.vsl_info:
+                        st.info(f"**VSL Angle:** {st.session_state.vsl_info['angle']}")
+                    else:
+                        st.info("Go to Step 2 (VSL Detection) to continue →")
+
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
     else:
-        st.info("Upload CSV to start")
+        st.info("Klik **Refresh from MaxWeb** om data op te halen, of upload een eigen CSV.")
 
 
 # ===== TAB 2: VSL DETECTION =====
