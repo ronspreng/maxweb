@@ -198,8 +198,12 @@ class MaxWebDetector:
             return self._analyze_with_claude(content_snippet, maxweb_url)
 
         except Exception as e:
-            logger.error(f"[maxweb] Detection failed: {e}")
-            return None
+            logger.error(f"[maxweb] Detection failed: {type(e).__name__}: {e}")
+            # Return error info ipv None zodat Streamlit kan tonen waar het misging
+            return {
+                "error": f"{type(e).__name__}: {e}",
+                "source_url": maxweb_url,
+            }
 
     def _analyze_with_claude(self, content: str, url: str) -> Optional[dict]:
         """Use Claude to extract VSL angle from page content."""
@@ -255,5 +259,8 @@ Respond with ONLY valid JSON (no markdown):
             return result
 
         except Exception as e:
-            logger.error(f"[maxweb] Analysis failed: {e}")
-            return None
+            logger.error(f"[maxweb] Analysis failed: {type(e).__name__}: {e}")
+            return {
+                "error": f"Claude-analyse mislukt: {type(e).__name__}: {e}",
+                "source_url": url,
+            }

@@ -16,7 +16,7 @@ class CreativeGenerator:
 
     def __init__(self):
         self.client = Anthropic()
-        self.model = "claude-3-5-haiku-20241022"
+        self.model = "claude-haiku-4-5-20251001"
 
     def generate(
         self,
