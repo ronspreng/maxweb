@@ -3,12 +3,29 @@
 Write-Host "MaxWeb Local Testing Setup" -ForegroundColor Cyan
 Write-Host ""
 
-# Set environment variables
-Write-Host "[1] Setting environment variables..." -ForegroundColor Yellow
-$env:STREAMLIT_AUTH_ENABLED = "true"
-$env:STREAMLIT_PASSWORD = "test123"
-Write-Host "OK - STREAMLIT_AUTH_ENABLED = true" -ForegroundColor Green
-Write-Host "OK - STREAMLIT_PASSWORD = test123" -ForegroundColor Green
+# Load environment variables from .env (if not already set)
+Write-Host "[1] Loading environment variables..." -ForegroundColor Yellow
+if (Test-Path .env) {
+    Get-Content .env | ForEach-Object {
+        if ($_ -match '^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)$') {
+            $name = $matches[1]
+            $value = $matches[2].Trim('"').Trim("'")
+            # ALTIJD overschrijven vanuit .env
+            Set-Item -Path "env:$name" -Value $value
+        }
+    }
+}
+
+# Defaults voor lokaal testen
+if (-not $env:STREAMLIT_AUTH_ENABLED) { $env:STREAMLIT_AUTH_ENABLED = "true" }
+
+if (-not $env:STREAMLIT_PASSWORD) {
+    Write-Host "WARN: STREAMLIT_PASSWORD niet gezet" -ForegroundColor Red
+    Write-Host "      Voeg toe aan .env: STREAMLIT_PASSWORD=<wachtwoord>" -ForegroundColor Red
+} else {
+    Write-Host "OK - STREAMLIT_PASSWORD geladen uit .env" -ForegroundColor Green
+}
+Write-Host "OK - STREAMLIT_AUTH_ENABLED = $($env:STREAMLIT_AUTH_ENABLED)" -ForegroundColor Green
 Write-Host ""
 
 # Check API Key
@@ -29,7 +46,7 @@ Write-Host ""
 Write-Host "======================================" -ForegroundColor Cyan
 Write-Host "STREAMLIT APP (Port 8501)" -ForegroundColor Cyan
 Write-Host "URL: http://localhost:8501" -ForegroundColor Green
-Write-Host "Password: test123" -ForegroundColor Green
+Write-Host "Password: (zie .env STREAMLIT_PASSWORD)" -ForegroundColor Green
 Write-Host "======================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -48,7 +65,7 @@ Set-Location "c:\data\Claude\MaxWeb"
 Write-Host "Starting Streamlit app..." -ForegroundColor Green
 Write-Host ""
 
-streamlit run streamlit_simple.py --server.port 8501 --server.address localhost
+streamlit run streamlit_app.py --server.port 8501 --server.address localhost
 
 # Cleanup
 Write-Host ""

@@ -69,7 +69,7 @@ cd maxweb-app
 cp -r /path/to/maxweb/* .
 
 # Zorg ervoor dat je hebt:
-# - streamlit_simple.py
+# - streamlit_app.py
 # - requirements.txt
 # - src/ folder (modules)
 # - .env (NIET committen!)
@@ -93,7 +93,7 @@ COPY . .
 EXPOSE 7860
 
 # Run Streamlit
-CMD ["streamlit", "run", "streamlit_simple.py", \
+CMD ["streamlit", "run", "streamlit_app.py", \
      "--server.port=7860", \
      "--server.address=0.0.0.0"]
 EOF
@@ -217,7 +217,7 @@ git push
 # Settings → Activity logs
 
 # Lokaal testen
-streamlit run streamlit_simple.py --logger.level=debug
+streamlit run streamlit_app.py --logger.level=debug
 ```
 
 ### Domain niet resolving
@@ -234,7 +234,7 @@ nslookup app.domain.com
 # Zet API key in HF Spaces Secrets, NOT in .env file
 # Test lokaal eerst:
 export ANTHROPIC_API_KEY=sk-ant-...
-streamlit run streamlit_simple.py
+streamlit run streamlit_app.py
 ```
 
 ---

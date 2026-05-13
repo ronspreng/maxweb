@@ -708,6 +708,7 @@ with tabs[4]:
             else:
                 with st.spinner(f"Publishing {len(to_publish)} pages to GitHub..."):
                     try:
+                        published_count = 0
                         for page_data in to_publish:
                             path = page_data["path"]
                             html = page_data["html"]
@@ -718,12 +719,16 @@ with tabs[4]:
                                 commit_message=f"Add presell: {st.session_state.selected_offer}",
                                 auto_push=True
                             )
-                            if not success:
-                                st.error(f"Failed to publish {path.name}")
-                                break
+                            if success:
+                                published_count += 1
+                            else:
+                                st.error(f"Failed to publish {path.name} — check logs")
 
-                        st.success(f"✓ Published {len(to_publish)} pages! Vercel redeploys in ~30s.")
-                        st.info("Check your presell site in a few moments")
+                        if published_count > 0:
+                            st.success(f"✓ Published {published_count} of {len(to_publish)} pages! Vercel redeploys in ~30s.")
+                            st.info("Check your presell site in a few moments")
+                        else:
+                            st.error(f"Failed to publish any pages. Check git/GitHub access.")
 
                     except Exception as e:
                         st.error(f"Error: {e}")

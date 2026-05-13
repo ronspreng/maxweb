@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -151,14 +152,33 @@ class PresellSiteBuilder:
         article_items = []
 
         for article_file in sorted(articles):
-            # Extract title from filename
-            title = article_file.stem.replace("-", " ").title()
             slug = article_file.stem
-            article_items.append(f"""            <div class="article-card">
-                <h2><a href="/articles/{slug}.html">{title}</a></h2>
-                <p>Discover the latest in health and wellness.</p>
-                <a href="/articles/{slug}.html" class="btn">Read More</a>
-            </div>""")
+
+            # Extract title from HTML <title> tag
+            title = slug.replace("-", " ").title()
+            try:
+                with open(article_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    match = re.search(r"<title>\s*([^<]+?)\s*</title>", content, re.IGNORECASE)
+                    if match:
+                        full_title = match.group(1).strip()
+                        # Remove trailing " - Health & Wellness" or " - Health Intelligence"
+                        title = re.sub(r"\s*-\s*[A-Za-z\s&]+$", "", full_title).strip()
+            except Exception as e:
+                logger.warning(f"Could not extract title from {article_file}: {e}")
+
+            category = "Health" if "brain" in slug or "cognitive" in slug or "memory" in slug else "Wellness"
+            article_items.append(f"""                <article class="article-card">
+                    <div class="article-card-content">
+                        <div class="article-card-meta">
+                            <span>{category}</span>
+                            <span>Read in 5 min</span>
+                        </div>
+                        <h3><a href="/articles/{slug}.html">{title}</a></h3>
+                        <p>Discover the latest in health and wellness insights and practical strategies.</p>
+                        <a href="/articles/{slug}.html" class="btn">Read More</a>
+                    </div>
+                </article>""")
 
         articles_html = "\n".join(article_items) if article_items else """            <div class="article-card">
                 <p>No articles yet. Create your first presell page to get started!</p>

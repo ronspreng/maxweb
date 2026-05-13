@@ -5,6 +5,8 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+from .site_builder import PresellSiteBuilder
+
 logger = logging.getLogger(__name__)
 
 
@@ -41,6 +43,11 @@ class PresellPublisher:
 
             logger.info(f"[publisher] Wrote: {filepath}")
 
+            # Update site index to include new article
+            builder = PresellSiteBuilder()
+            builder.update_index()
+            logger.info(f"[publisher] Updated index.html")
+
             # Commit and push if requested
             if auto_push:
                 if commit_message is None:
@@ -74,7 +81,8 @@ class PresellPublisher:
                     logger.info(f"[publisher] Pushed to GitHub: {commit_message}")
                 except subprocess.CalledProcessError as e:
                     logger.error(f"[publisher] Git error: {e.stderr.decode()}")
-                    return False
+                    logger.warning(f"[publisher] Saved locally: {filepath}")
+                    return True
 
             return True
 

@@ -37,13 +37,13 @@ http://localhost:8000/contact.html
 # Terminal 2: Zet environment variables
 $env:ANTHROPIC_API_KEY = "sk-ant-..." # Je echte API key
 $env:STREAMLIT_AUTH_ENABLED = "true"
-$env:STREAMLIT_PASSWORD = "test123"
+$env:STREAMLIT_PASSWORD = "<kies-een-eigen-wachtwoord>"
 
-# Of maak .env.local:
+# Of maak .env.local (aanbevolen — zie .env.example als template):
 cat > .env.local << 'EOF'
 ANTHROPIC_API_KEY=sk-ant-...
 STREAMLIT_AUTH_ENABLED=true
-STREAMLIT_PASSWORD=test123
+STREAMLIT_PASSWORD=<kies-een-eigen-wachtwoord>
 EOF
 
 # Python laadt .env.local automatisch via python-dotenv
@@ -53,7 +53,7 @@ EOF
 ```bash
 # Terminal 2: Start Streamlit app
 cd c:\data\Claude\MaxWeb
-streamlit run streamlit_simple.py
+streamlit run streamlit_app.py
 
 # Output:
 # You can now view your Streamlit app in your browser.
@@ -64,7 +64,7 @@ streamlit run streamlit_simple.py
 ### 2.3 Test Login
 1. Ga naar `http://localhost:8501`
 2. Zie login screen
-3. Vul in: password = `test123`
+3. Vul in: password = `<de waarde uit je .env>`
 4. Click **Login**
 5. Je bent nu in de app!
 
@@ -119,7 +119,7 @@ http://app.domain.com:8501    → Streamlit (login → app)
 
 ### Streamlit Auth Debug
 ```python
-# Voeg toe aan streamlit_simple.py voor debugging
+# Voeg toe aan streamlit_app.py voor debugging
 import streamlit as st
 
 st.write(f"DEBUG: Auth enabled = {os.getenv('STREAMLIT_AUTH_ENABLED')}")
@@ -138,7 +138,7 @@ curl http://localhost:8000/css/style.css
 ### Streamlit Errors
 ```bash
 # Run met debug logging
-streamlit run streamlit_simple.py --logger.level=debug
+streamlit run streamlit_app.py --logger.level=debug
 ```
 
 ---
@@ -230,7 +230,7 @@ echo "Terminal 1 (Website):"
 echo "  cd output/presell_site && python -m http.server 8000"
 echo ""
 echo "Terminal 2 (Streamlit):"
-echo "  streamlit run streamlit_simple.py"
+echo "  streamlit run streamlit_app.py"
 echo ""
 echo "Browser:"
 echo "  Website:   http://localhost:8000"
