@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Health & Wellness</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .contact-form {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .submit-btn {
+            background: var(--secondary);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: var(--accent);
+            transform: translateX(3px);
+        }
+
+        .contact-info {
+            background: var(--light-bg);
+            padding: 30px;
+            border-radius: 8px;
+            margin-top: 40px;
+        }
+
+        .contact-info h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .contact-info p {
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div>
+                <h1 class="logo">Health & Wellness</h1>
+                <p class="tagline">Expert insights and wellness tips</p>
+            </div>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/about.html">About</a>
+                <a href="/disclaimer.html">Disclaimer</a>
+                <a href="/privacy-policy.html">Privacy</a>
+                <a href="/terms-of-service.html">Terms</a>
+                <a href="/contact.html">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="article-container">
+            <div class="article-header">
+                <h1>Contact Us</h1>
+            </div>
+
+            <div class="article">
+                <p>We'd love to hear from you! Whether you have questions, feedback, topic suggestions, or just want to say hello, please don't hesitate to reach out.</p>
+
+                <form class="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subject">Subject *</label>
+                        <input type="text" id="subject" name="subject" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Message *</label>
+                        <textarea id="message" name="message" required></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Send Message</button>
+                </form>
+
+                <div class="contact-info">
+                    <h3>Response Time</h3>
+                    <p>We aim to respond to all inquiries within 48 hours during business days. Thank you for your patience.</p>
+
+                    <h3>What We're Looking For</h3>
+                    <ul>
+                        <li><strong>Topic Suggestions:</strong> Ideas for articles we should write</li>
+                        <li><strong>Corrections:</strong> If you spot an error in our content</li>
+                        <li><strong>Feedback:</strong> Your thoughts on how we can improve</li>
+                        <li><strong>Testimonials:</strong> Success stories and insights from applying our advice</li>
+                        <li><strong>Partnerships:</strong> Business and collaboration inquiries</li>
+                    </ul>
+
+                    <h3>Privacy Note</h3>
+                    <p>Your personal information will be handled according to our <a href="/privacy-policy.html">Privacy Policy</a>. We will never share your information with third parties.</p>
+                </div>
+            </div>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 Health & Wellness. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
