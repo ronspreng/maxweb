@@ -12,7 +12,7 @@ Gebruik:
     1) Login in https://affiliates-backoffice.maxweb.com (incl. 2FA)
     2) Kopieer de waarde van de cookie `sessid3`:
          DevTools (F12) -> Application -> Cookies -> sessid3 -> Value
-    3) Zet hem in een .env naast dit script:
+    3) Zet hem in een .env in je projectroot (of naast dit script):
          MAXWEB_SESSID3=...plak.hier...
        OF geef hem mee als argument: python maxweb_scraper.py --sessid3 <waarde>
     4) python maxweb_scraper.py
@@ -165,8 +165,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--out",
-        default=str(Path(__file__).parent),
-        help="Output-map (default: map van het script)",
+        default="./data",
+        help="Output-map (default: ./data, relatief aan working directory)",
     )
     parser.add_argument(
         "--raw",
@@ -175,19 +175,23 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    # Probeer .env te laden als die er is (optioneel)
+    # Probeer .env te laden — eerst via cwd-walk (vindt .env in projectroot),
+    # daarna als fallback naast het script. load_dotenv() overschrijft bestaande
+    # environment-variabelen niet, dus altijd veilig om te draaien.
+    try:
+        from dotenv import load_dotenv, find_dotenv  # type: ignore
+
+        found = find_dotenv(usecwd=True)
+        if found:
+            load_dotenv(found)
+        else:
+            # Fallback: .env naast het script (oude gedrag)
+            load_dotenv(Path(__file__).parent / ".env")
+    except ImportError:
+        pass
+
     sessid3 = args.sessid3 or os.environ.get("MAXWEB_SESSID3")
     trust2fa = args.trust2fa or os.environ.get("MAXWEB_TRUST2FA")
-
-    if not sessid3:
-        try:
-            from dotenv import load_dotenv  # type: ignore
-
-            load_dotenv(Path(__file__).parent / ".env")
-            sessid3 = os.environ.get("MAXWEB_SESSID3")
-            trust2fa = os.environ.get("MAXWEB_TRUST2FA")
-        except ImportError:
-            pass
 
     if not sessid3:
         print(

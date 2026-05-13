@@ -1,7 +1,30 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -c \"exec\\(open\\('streamlit_simple.py'\\).read\\(\\)\\)\")"
+      "Bash(python -c \"exec\\(open\\('streamlit_app.py'\\).read\\(\\)\\)\")",
+      "Bash(python -m streamlit run streamlit_app.py)",
+      "Bash(pkill -f streamlit)",
+      "Bash(pkill -f \"streamlit run\")",
+      "Bash(python -m streamlit run streamlit_app.py --server.port=8501)",
+      "PowerShell(& python -m streamlit run \"c:\\\\data\\\\Claude\\\\MaxWeb\\\\streamlit_simple.py\" --server.port=8501)",
+      "PowerShell(python -m streamlit run \"c:\\\\data\\\\Claude\\\\MaxWeb\\\\streamlit_app.py\" --server.port=8501)",
+      "Bash(Select-Object -First 20)",
+      "PowerShell(cd c:\\\\data\\\\Claude\\\\MaxWeb; $pwd = Get-Location; Write-Host \"Current: $pwd\"; if \\(Test-Path \".env\"\\) { Write-Host \".env location: correct \\(in project root\\)\" } else { Write-Host \".env not found in project root\" }; if \\(Test-Path \"src/module4_presell\"\\) { Write-Host \"module4_presell exists\" })",
+      "PowerShell(Get-Process python | Where-Object { $_.CommandLine -match 'streamlit' } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2)",
+      "Bash(curl -s http://localhost:8501)",
+      "PowerShell(Get-Process python -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -match 'streamlit' } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1)",
+      "PowerShell(Get-Process python -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -match 'streamlit' } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2)",
+      "PowerShell(Get-Process python -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -match 'streamlit' } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; cd c:\\\\data\\\\Claude\\\\MaxWeb; python -m streamlit run streamlit_app.py)",
+      "PowerShell(& '.\\\\start_local.ps1')",
+      "Bash(Get-Content -Path \"C:\\\\Users\\\\rspre\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--data-Claude-MaxWeb\\\\48753880-1dc4-4a79-9c8d-340fa0c7f0d7\\\\tasks\\\\b5cmjbshs.output\" -Wait)",
+      "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python test_publisher.py)",
+      "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python test_site_builder.py)",
+      "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python test_update_debug.py)",
+      "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python test_title_extract.py)",
+      "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python test_update_verbose.py)",
+      "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python build_articles.py)",
+      "PowerShell(vercel --version 2>&1)",
+      "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python build_articles.py | grep -E \"Found|---\")"
     ]
   }
 }
