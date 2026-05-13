@@ -103,7 +103,9 @@ def main():
 
         all_articles = list(builder.articles_dir.glob("*.html"))
         logger.info(f"  Found {len(all_articles)} articles before update")
-        for art in all_articles[:3]:
+
+        # Log ALL articles found
+        for art in sorted(all_articles):
             logger.info(f"    - {art.name}")
 
         builder.update_index()
@@ -112,8 +114,38 @@ def main():
 
         # Count articles
         articles = list(builder.articles_dir.glob("*.html"))
-        logger.info(f"✓ Build complete! Found {len(articles)} articles")
+        final_count = len(articles)
+        logger.info(f"✓ Build complete! Found {final_count} articles")
         logger.info(f"✓ Site ready at: {builder.site_dir}")
+
+        # Warning if fewer than expected
+        if final_count < 18:
+            logger.warning(f"⚠️  Expected 18 articles, found {final_count}")
+            logger.warning("Missing articles:")
+            expected = [
+                "blue-light-sleep-cognition.html",
+                "brain-health-101.html",
+                "brain-memory-keeper.html",
+                "cognitive-training-mental-games.html",
+                "exercise-for-brain-health.html",
+                "gut-brain-connection.html",
+                "hydration-brain-function.html",
+                "meditation-mindfulness-brain.html",
+                "memory-and-aging.html",
+                "natural-ways-to-boost-focus.html",
+                "nutrition-for-brain-power.html",
+                "preventing-cognitive-decline-aging.html",
+                "sleep-and-cognitive-function.html",
+                "stress-and-brain-health.html",
+                "supplements-cognitive-support.html",
+                "test-article-123.html",
+                "test-article-456.html",
+                "understanding-cognitive-decline.html",
+            ]
+            found_names = {art.name for art in articles}
+            for exp in expected:
+                if exp not in found_names:
+                    logger.warning(f"  - {exp}")
 
         return 0
 
