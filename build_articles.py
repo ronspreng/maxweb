@@ -6,7 +6,13 @@ Runs during Vercel deployment to ensure articles are up-to-date.
 
 import logging
 import sys
+import os
 from pathlib import Path
+
+# Ensure we're in the right directory
+project_root = Path(__file__).parent
+os.chdir(project_root)
+sys.path.insert(0, str(project_root))
 
 logging.basicConfig(level=logging.INFO, format='[build] %(message)s')
 logger = logging.getLogger(__name__)
@@ -17,6 +23,7 @@ def main():
         from src.module4_presell.site_builder import PresellSiteBuilder
         from datetime import datetime
 
+        logger.info(f"Working directory: {os.getcwd()}")
         logger.info("Starting build process...")
 
         builder = PresellSiteBuilder()
@@ -91,7 +98,17 @@ def main():
 
         # Update index with all current articles
         logger.info("Updating index.html with all articles...")
+        logger.info(f"  Articles dir: {builder.articles_dir}")
+        logger.info(f"  Articles dir exists: {builder.articles_dir.exists()}")
+
+        all_articles = list(builder.articles_dir.glob("*.html"))
+        logger.info(f"  Found {len(all_articles)} articles before update")
+        for art in all_articles[:3]:
+            logger.info(f"    - {art.name}")
+
         builder.update_index()
+
+        logger.info("  Index updated successfully")
 
         # Count articles
         articles = list(builder.articles_dir.glob("*.html"))
