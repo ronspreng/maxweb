@@ -154,16 +154,22 @@ class PresellSiteBuilder:
         for article_file in sorted(articles):
             slug = article_file.stem
 
-            # Extract title from HTML <title> tag
+            # Extract title from HTML <h1> tag (the actual headline)
             title = slug.replace("-", " ").title()
             try:
                 with open(article_file, "r", encoding="utf-8") as f:
                     content = f.read()
-                    match = re.search(r"<title>\s*([^<]+?)\s*</title>", content, re.IGNORECASE)
+                    # Try H1 first (presell pages use this for the hook headline)
+                    match = re.search(r"<h1>\s*([^<]+?)\s*</h1>", content, re.IGNORECASE)
                     if match:
-                        full_title = match.group(1).strip()
-                        # Remove trailing " - Health & Wellness" or " - Health Intelligence"
-                        title = re.sub(r"\s*-\s*[A-Za-z\s&]+$", "", full_title).strip()
+                        title = match.group(1).strip()
+                    else:
+                        # Fallback to title tag for other pages
+                        match = re.search(r"<title>\s*([^<]+?)\s*</title>", content, re.IGNORECASE)
+                        if match:
+                            full_title = match.group(1).strip()
+                            # Remove trailing " - Health & Wellness" or " - Health Intelligence"
+                            title = re.sub(r"\s*-\s*[A-Za-z\s&]+$", "", full_title).strip()
             except Exception as e:
                 logger.warning(f"Could not extract title from {article_file}: {e}")
 
