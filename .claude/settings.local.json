@@ -24,7 +24,10 @@
       "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python test_update_verbose.py)",
       "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python build_articles.py)",
       "PowerShell(vercel --version 2>&1)",
-      "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python build_articles.py | grep -E \"Found|---\")"
+      "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python build_articles.py | grep -E \"Found|---\")",
+      "Bash(python build_articles.py)",
+      "Bash(git push *)",
+      "Read(//c/data/Claude/MaxWeb/output/presell_site/articles/**)"
     ]
   }
 }

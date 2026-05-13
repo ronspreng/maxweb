@@ -87,8 +87,16 @@ class PresellSiteBuilder:
         Returns:
             Path to saved article
         """
-        # Generate article filename
-        slug = page.offer_name.lower().replace(" ", "-").replace("'", "")
+        # Generate article filename from H1 headline (if available), fallback to offer_name
+        slug = None
+        match = re.search(r"<h1>\s*([^<]+?)\s*</h1>", article_html, re.IGNORECASE)
+        if match:
+            headline = match.group(1).strip()
+            slug = headline.lower().replace(" ", "-").replace("'", "").replace(".", "")
+
+        if not slug:
+            slug = page.offer_name.lower().replace(" ", "-").replace("'", "")
+
         filename = f"{slug}.html"
         filepath = self.articles_dir / filename
 
