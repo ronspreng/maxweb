@@ -1,5 +1,5 @@
 {
-  "buildCommand": "python build_articles.py",
+  "buildCommand": "pip install -r requirements.txt && python3 build_articles.py",
   "outputDirectory": "output/presell_site",
   "cleanUrls": true,
   "trailingSlash": false,
