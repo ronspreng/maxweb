@@ -97,8 +97,18 @@ class PresellSiteBuilder:
         if not slug:
             slug = page.offer_name.lower().replace(" ", "-").replace("'", "")
 
+        # Ensure unique filename—add -2, -3, etc if exists
+        base_slug = slug
+        counter = 2
         filename = f"{slug}.html"
         filepath = self.articles_dir / filename
+
+        while filepath.exists():
+            slug = f"{base_slug}-{counter}"
+            filename = f"{slug}.html"
+            filepath = self.articles_dir / filename
+            counter += 1
+            logger.info(f"[site] Filename {base_slug}.html exists, trying {filename}")
 
         # Wrap in article template with navigation
         html = self._wrap_article(page, article_html, slug)
