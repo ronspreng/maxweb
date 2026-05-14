@@ -75,18 +75,27 @@ class PresellSiteBuilder:
         logger.info(f"[site] Generated empty index.html")
         return index_path
 
-    def add_article(self, page: PresellPage, article_html: str) -> Path:
+    def add_article(self, page: PresellPage, article_html: str, folder: str = "articles") -> Path:
         """
         Add presell page as article to site.
-        Saves article and updates index.html.
+        Saves article and optionally updates index.html.
 
         Args:
             page: PresellPage model
             article_html: Generated HTML content
+            folder: "articles" (editorial, on index) or "presell-ads" (advertorial, not on index)
 
         Returns:
             Path to saved article
         """
+        # Determine target directory based on folder type
+        if folder == "presell-ads":
+            target_dir = self.site_dir / "presell-ads"
+        else:
+            target_dir = self.articles_dir
+
+        target_dir.mkdir(parents=True, exist_ok=True)
+
         # Generate article filename from H1 headline (if available), fallback to offer_name
         slug = None
         match = re.search(r"<h1>\s*([^<]+?)\s*</h1>", article_html, re.IGNORECASE)
@@ -101,12 +110,12 @@ class PresellSiteBuilder:
         base_slug = slug
         counter = 2
         filename = f"{slug}.html"
-        filepath = self.articles_dir / filename
+        filepath = target_dir / filename
 
         while filepath.exists():
             slug = f"{base_slug}-{counter}"
             filename = f"{slug}.html"
-            filepath = self.articles_dir / filename
+            filepath = target_dir / filename
             counter += 1
             logger.info(f"[site] Filename {base_slug}.html exists, trying {filename}")
 
@@ -116,10 +125,13 @@ class PresellSiteBuilder:
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(html)
 
-        logger.info(f"[site] Added article: {filename}")
+        logger.info(f"[site] Added {folder} article: {filename}")
 
-        # Update index listing
-        self.update_index()
+        # Update index listing only for editorial articles, not for presell ads
+        if folder == "articles":
+            self.update_index()
+        else:
+            logger.info(f"[site] Skipped index update for presell ad: {filename}")
 
         return filepath
 

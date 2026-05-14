@@ -33,15 +33,15 @@ class PresellPublisher:
             True if successful, False otherwise
         """
         try:
-            # Write HTML to presell site
-            articles_dir = Path("output/presell_site/articles")
-            articles_dir.mkdir(parents=True, exist_ok=True)
+            # Write HTML to presell ads folder (advertorials are not on homepage index)
+            presell_ads_dir = Path("output/presell_site/presell-ads")
+            presell_ads_dir.mkdir(parents=True, exist_ok=True)
 
-            filepath = articles_dir / f"{offer_slug}.html"
+            filepath = presell_ads_dir / f"{offer_slug}.html"
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(html_content)
 
-            logger.info(f"[publisher] Wrote: {filepath}")
+            logger.info(f"[publisher] Wrote presell ad: {filepath}")
 
             # Update site index to include new article
             builder = PresellSiteBuilder()
@@ -54,7 +54,7 @@ class PresellPublisher:
                     commit_message = f"Publish: {offer_slug}"
 
                 try:
-                    # Stage article file
+                    # Stage presell ad file
                     subprocess.run(
                         ["git", "add", "-f", str(filepath)],
                         check=True,

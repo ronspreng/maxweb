@@ -645,7 +645,7 @@ with tabs[4]:
                         )
 
                         html_content = AdvertorialBuilder.build(page)
-                        article_path = site_builder.add_article(page, html_content)
+                        article_path = site_builder.add_article(page, html_content, folder="presell-ads")
 
                         presell_pages.append({
                             "index": lp_index,
