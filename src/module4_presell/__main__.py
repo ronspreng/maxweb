@@ -94,8 +94,8 @@ def init_site(
                 cta_text="Learn More"
             )
 
-            # Add to site
-            site_builder.add_article(mock_page, article_html)
+            # Add to site (editorial articles go to /articles/)
+            site_builder.add_article(mock_page, article_html, folder="articles")
             typer.echo(f"   [{i}/{len(GENERIC_ARTICLES)}] {article['title']}")
 
         typer.echo("\n3. Updating index...")
