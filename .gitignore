@@ -46,6 +46,7 @@ env/
 data/
 output/
 !output/presell_site/
+!output/presell_site/**
 logs/
 *.db
 *.sqlite3
