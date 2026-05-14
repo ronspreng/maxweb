@@ -734,6 +734,50 @@ with tabs[4]:
                         st.error(f"Error: {e}")
                         logger.error(f"Presell publish error: {e}")
 
+        # ===== MANAGE ARTICLES =====
+        st.divider()
+        st.subheader("🗑️ Manage Published Articles")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            with st.expander("Presell Ads (/presell-ads/)"):
+                presell_ads = site_builder.list_articles(folder="presell-ads")
+                if presell_ads:
+                    for ad in presell_ads:
+                        cols = st.columns([3, 1])
+                        with cols[0]:
+                            st.caption(f"📄 {ad['title']}")
+                            st.text(f"`{ad['filename']}`", help=ad['filename'])
+                        with cols[1]:
+                            if st.button("🗑️", key=f"delete_presell_{ad['filename']}", help="Delete"):
+                                if site_builder.delete_article(ad['filename'], folder="presell-ads"):
+                                    st.success(f"Deleted & pushed: {ad['filename']}")
+                                    st.rerun()
+                                else:
+                                    st.error(f"Failed to delete: {ad['filename']}")
+                else:
+                    st.info("No presell ads yet")
+
+        with col2:
+            with st.expander("Editorial Articles (/articles/)"):
+                articles = site_builder.list_articles(folder="articles")
+                if articles:
+                    for article in articles:
+                        cols = st.columns([3, 1])
+                        with cols[0]:
+                            st.caption(f"📄 {article['title']}")
+                            st.text(f"`{article['filename']}`", help=article['filename'])
+                        with cols[1]:
+                            if st.button("🗑️", key=f"delete_article_{article['filename']}", help="Delete"):
+                                if site_builder.delete_article(article['filename'], folder="articles"):
+                                    st.success(f"Deleted & pushed: {article['filename']}")
+                                    st.rerun()
+                                else:
+                                    st.error(f"Failed to delete: {article['filename']}")
+                else:
+                    st.info("No articles yet")
+
 
 # ===== TAB 6: ANALYTICS (MODULE 5) =====
 with tabs[5]:

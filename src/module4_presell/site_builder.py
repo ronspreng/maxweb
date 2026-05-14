@@ -510,3 +510,111 @@ nav a:hover {
     def get_site_path(self) -> Path:
         """Get path to site directory."""
         return self.site_dir
+
+    def list_articles(self, folder: str = "articles") -> list:
+        """
+        List all articles in a folder with their titles.
+
+        Args:
+            folder: "articles" (editorial) or "presell-ads" (advertorials)
+
+        Returns:
+            List of dicts: [{"filename": "slug.html", "title": "...", "folder": "..."}]
+        """
+        target_dir = self.site_dir / folder
+        if not target_dir.exists():
+            return []
+
+        articles = []
+        for article_file in sorted(target_dir.glob("*.html")):
+            title = article_file.stem.replace("-", " ").title()
+            try:
+                with open(article_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    match = re.search(r"<h1>\s*([^<]+?)\s*</h1>", content, re.IGNORECASE)
+                    if match:
+                        title = match.group(1).strip()
+            except Exception as e:
+                logger.warning(f"Could not extract title from {article_file}: {e}")
+
+            articles.append({
+                "filename": article_file.name,
+                "title": title,
+                "folder": folder
+            })
+
+        return articles
+
+    def delete_article(self, filename: str, folder: str = "presell-ads", auto_push: bool = True) -> bool:
+        """
+        Delete an article and optionally commit+push to GitHub.
+
+        Args:
+            filename: article filename (e.g. "my-article.html")
+            folder: "articles" or "presell-ads"
+            auto_push: whether to git commit and push
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            target_dir = self.site_dir / folder
+            filepath = target_dir / filename
+
+            if not filepath.exists():
+                logger.warning(f"[site] Article not found: {filepath}")
+                return False
+
+            # Delete file
+            filepath.unlink()
+            logger.info(f"[site] Deleted: {filepath}")
+
+            # Update index if editorial article
+            if folder == "articles":
+                self.update_index()
+                logger.info(f"[site] Updated index.html after deletion")
+
+            # Commit and push if requested
+            if auto_push:
+                try:
+                    import subprocess
+                    subprocess.run(
+                        ["git", "rm", "-f", str(filepath)],
+                        check=True,
+                        capture_output=True,
+                        cwd=".",
+                    )
+
+                    # Also stage index.html if articles folder
+                    if folder == "articles":
+                        subprocess.run(
+                            ["git", "add", "-f", "output/presell_site/index.html"],
+                            check=True,
+                            capture_output=True,
+                            cwd=".",
+                        )
+
+                    subprocess.run(
+                        ["git", "commit", "-m", f"Delete: {filename} from {folder}"],
+                        check=True,
+                        capture_output=True,
+                        cwd=".",
+                    )
+
+                    subprocess.run(
+                        ["git", "push", "origin", "master"],
+                        check=True,
+                        capture_output=True,
+                        cwd=".",
+                    )
+
+                    logger.info(f"[site] Pushed deletion to GitHub: {filename}")
+                except subprocess.CalledProcessError as e:
+                    logger.error(f"[site] Git error: {e.stderr.decode()}")
+                    return False
+
+            return True
+
+        except Exception as e:
+            logger.error(f"[site] Delete error: {e}")
+            return False
