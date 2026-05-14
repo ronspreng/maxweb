@@ -51,12 +51,20 @@ class PresellPublisher:
             # Commit and push if requested
             if auto_push:
                 if commit_message is None:
-                    commit_message = f"Add advertorial: {offer_slug}"
+                    commit_message = f"Publish: {offer_slug}"
 
                 try:
-                    # Stage file
+                    # Stage article file
                     subprocess.run(
-                        ["git", "add", str(filepath)],
+                        ["git", "add", "-f", str(filepath)],
+                        check=True,
+                        capture_output=True,
+                        cwd=".",
+                    )
+
+                    # Also stage updated index.html and build timestamp
+                    subprocess.run(
+                        ["git", "add", "-f", "output/presell_site/index.html", "output/presell_site/.build-timestamp"],
                         check=True,
                         capture_output=True,
                         cwd=".",
@@ -70,7 +78,7 @@ class PresellPublisher:
                         cwd=".",
                     )
 
-                    # Push to GitHub
+                    # Push to GitHub (triggers Vercel auto-deployment)
                     subprocess.run(
                         ["git", "push", "origin", "master"],
                         check=True,
@@ -78,7 +86,7 @@ class PresellPublisher:
                         cwd=".",
                     )
 
-                    logger.info(f"[publisher] Pushed to GitHub: {commit_message}")
+                    logger.info(f"[publisher] ✓ Pushed to GitHub & Vercel: {commit_message}")
                 except subprocess.CalledProcessError as e:
                     logger.error(f"[publisher] Git error: {e.stderr.decode()}")
                     logger.warning(f"[publisher] Saved locally: {filepath}")
