@@ -6,6 +6,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+from urllib.parse import quote
 
 from .models import PresellPage
 
@@ -101,10 +102,10 @@ class PresellSiteBuilder:
         match = re.search(r"<h1>\s*([^<]+?)\s*</h1>", article_html, re.IGNORECASE)
         if match:
             headline = match.group(1).strip()
-            slug = headline.lower().replace(" ", "-").replace("'", "").replace(".", "")
+            slug = headline.lower().replace(" ", "-").replace("'", "").replace(".", "").replace(":", "-")
 
         if not slug:
-            slug = page.offer_name.lower().replace(" ", "-").replace("'", "")
+            slug = page.offer_name.lower().replace(" ", "-").replace("'", "").replace(":", "-")
 
         # Ensure unique filename—add -2, -3, etc if exists
         base_slug = slug
@@ -137,11 +138,13 @@ class PresellSiteBuilder:
 
     def _wrap_article(self, page: PresellPage, body_html: str, slug: str) -> str:
         """Wrap presell page in article template with navigation."""
+        pub_date = page.generated_at.strftime("%Y-%m-%d") if page.generated_at else ""
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="article:published_time" content="{pub_date}">
     <title>{page.offer_name} - Health & Wellness</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -171,20 +174,53 @@ class PresellSiteBuilder:
 
     def update_index(self) -> Path:
         """
-        Update index.html with current article listing.
-        Adds articles without regenerating entire page.
+        Regenerate index.html with current article listing.
+        Rebuilds from scratch to avoid duplication.
+        Articles are sorted by publication date (newest first).
 
         Returns:
             Path to index.html
         """
-        # Find all articles
+        from datetime import datetime as dt
+
+        # Find all articles with their dates
         articles = list(self.articles_dir.glob("*.html"))
+        article_dates = []
+
+        for article_file in articles:
+            slug = article_file.stem
+            pub_date_str = ""
+            try:
+                with open(article_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    # Try to extract date from meta tag first
+                    match = re.search(r'<meta name="article:published_time" content="([^"]+)"', content)
+                    if match:
+                        pub_date_str = match.group(1)
+                    else:
+                        # Fallback to file modification time
+                        mod_time = article_file.stat().st_mtime
+                        pub_date_str = dt.fromtimestamp(mod_time).strftime("%Y-%m-%d")
+                # Parse date for sorting
+                pub_date = dt.strptime(pub_date_str, "%Y-%m-%d")
+                article_dates.append((pub_date, article_file))
+            except Exception as e:
+                logger.warning(f"Could not extract date from {article_file}: {e}")
+                # Use modification time as fallback
+                mod_time = article_file.stat().st_mtime
+                pub_date = dt.fromtimestamp(mod_time)
+                article_dates.append((pub_date, article_file))
+
+        # Sort by date, newest first
+        article_dates.sort(key=lambda x: x[0], reverse=True)
+
         article_items = []
 
-        for article_file in sorted(articles):
+        for pub_date_obj, article_file in article_dates:
             slug = article_file.stem
+            pub_date_str = pub_date_obj.strftime("%Y-%m-%d")
 
-            # Extract title from HTML <h1> tag (the actual headline)
+            # Extract title from HTML
             title = slug.replace("-", " ").title()
             try:
                 with open(article_file, "r", encoding="utf-8") as f:
@@ -204,15 +240,17 @@ class PresellSiteBuilder:
                 logger.warning(f"Could not extract title from {article_file}: {e}")
 
             category = "Health" if "brain" in slug or "cognitive" in slug or "memory" in slug else "Wellness"
+            date_html = f'<span>{pub_date_str}</span>'
+            slug_encoded = quote(slug, safe="-")
             article_items.append(f"""                <article class="article-card">
                     <div class="article-card-content">
                         <div class="article-card-meta">
                             <span>{category}</span>
-                            <span>Read in 5 min</span>
+                            {date_html}
                         </div>
-                        <h3><a href="/articles/{slug}.html">{title}</a></h3>
+                        <h3><a href="/articles/{slug_encoded}.html">{title}</a></h3>
                         <p>Discover the latest in health and wellness insights and practical strategies.</p>
-                        <a href="/articles/{slug}.html" class="btn">Read More</a>
+                        <a href="/articles/{slug_encoded}.html" class="btn">Read More</a>
                     </div>
                 </article>""")
 
@@ -220,20 +258,44 @@ class PresellSiteBuilder:
                 <p>No articles yet. Create your first presell page to get started!</p>
             </div>"""
 
-        # Read existing index
-        index_path = self.site_dir / "index.html"
-        with open(index_path, "r", encoding="utf-8") as f:
-            index_content = f.read()
+        # Rebuild index from scratch to avoid duplication issues
+        index_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health & Wellness - Articles</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <h1 class="logo">Health & Wellness</h1>
+            <p class="tagline">Expert insights and wellness tips</p>
+        </div>
+    </header>
 
-        # Replace article list placeholder
-        updated = index_content.replace(
-            "                <!-- Articles will be added here -->",
-            articles_html
-        )
+    <main class="container">
+        <section class="articles-grid">
+            <h1>Latest Articles</h1>
+            <div class="article-list">
+{articles_html}
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; {datetime.now().year} Health & Wellness. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>"""
 
         # Write back
+        index_path = self.site_dir / "index.html"
         with open(index_path, "w", encoding="utf-8") as f:
-            f.write(updated)
+            f.write(index_html)
 
         logger.info(f"[site] Updated index.html ({len(articles)} articles)")
         return index_path
@@ -561,13 +623,15 @@ nav a:hover {
             target_dir = self.site_dir / folder
             filepath = target_dir / filename
 
+            logger.info(f"[site] Attempting to delete: {filepath} (exists: {filepath.exists()})")
+
             if not filepath.exists():
                 logger.warning(f"[site] Article not found: {filepath}")
                 return False
 
             # Delete file
             filepath.unlink()
-            logger.info(f"[site] Deleted: {filepath}")
+            logger.info(f"[site] File deleted from disk: {filepath}")
 
             # Update index if editorial article
             if folder == "articles":
@@ -578,43 +642,69 @@ nav a:hover {
             if auto_push:
                 try:
                     import subprocess
-                    subprocess.run(
-                        ["git", "rm", "-f", str(filepath)],
-                        check=True,
+                    import os
+
+                    # Get current working directory
+                    cwd = os.getcwd()
+                    logger.info(f"[site] Git CWD: {cwd}")
+
+                    # Try to compute relative path safely
+                    try:
+                        folder_path = str(target_dir.relative_to(Path.cwd()))
+                        logger.info(f"[site] Relative folder path: {folder_path}")
+                    except ValueError:
+                        # If relative_to fails, use absolute path
+                        folder_path = str(target_dir)
+                        logger.warning(f"[site] Using absolute path: {folder_path}")
+
+                    # Stage changes
+                    logger.info(f"[site] Running: git add {folder_path}")
+                    result = subprocess.run(
+                        ["git", "add", folder_path],
                         capture_output=True,
                         cwd=".",
                     )
+                    logger.info(f"[site] git add result: {result.returncode}, stderr: {result.stderr.decode()}")
 
                     # Also stage index.html if articles folder
                     if folder == "articles":
-                        subprocess.run(
-                            ["git", "add", "-f", "output/presell_site/index.html"],
-                            check=True,
+                        logger.info(f"[site] Running: git add output/presell_site/index.html")
+                        result = subprocess.run(
+                            ["git", "add", "output/presell_site/index.html"],
                             capture_output=True,
                             cwd=".",
                         )
+                        logger.info(f"[site] git add index result: {result.returncode}")
 
-                    subprocess.run(
+                    # Commit
+                    logger.info(f"[site] Running: git commit -m 'Delete: {filename} from {folder}'")
+                    result = subprocess.run(
                         ["git", "commit", "-m", f"Delete: {filename} from {folder}"],
-                        check=True,
                         capture_output=True,
                         cwd=".",
                     )
+                    logger.info(f"[site] git commit result: {result.returncode}, stdout: {result.stdout.decode()}, stderr: {result.stderr.decode()}")
 
-                    subprocess.run(
+                    # Push
+                    logger.info(f"[site] Running: git push origin master")
+                    result = subprocess.run(
                         ["git", "push", "origin", "master"],
-                        check=True,
                         capture_output=True,
                         cwd=".",
                     )
+                    logger.info(f"[site] git push result: {result.returncode}")
+
+                    if result.returncode != 0:
+                        logger.error(f"[site] Push failed: {result.stderr.decode()}")
+                        return False
 
                     logger.info(f"[site] Pushed deletion to GitHub: {filename}")
-                except subprocess.CalledProcessError as e:
-                    logger.error(f"[site] Git error: {e.stderr.decode()}")
+                except Exception as e:
+                    logger.error(f"[site] Git error: {e}", exc_info=True)
                     return False
 
             return True
 
         except Exception as e:
-            logger.error(f"[site] Delete error: {e}")
+            logger.error(f"[site] Delete error: {e}", exc_info=True)
             return False
