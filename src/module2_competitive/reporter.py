@@ -139,8 +139,11 @@ class IntelReporter:
         output_dir.mkdir(parents=True, exist_ok=True)
         date_str = datetime.utcnow().strftime("%Y-%m-%d")
 
+        # Sanitize niche for filename (remove special chars like /)
+        safe_niche = report.niche.replace("/", "-").replace("\\", "-").replace(":", "-")
+
         # Save Markdown
-        md_filename = f"competitive_intel_{date_str}_{report.niche}.md"
+        md_filename = f"competitive_intel_{date_str}_{safe_niche}.md"
         md_path = output_dir / md_filename
         md_content = IntelReporter.to_markdown(report)
         with open(md_path, "w", encoding="utf-8") as f:
@@ -148,7 +151,7 @@ class IntelReporter:
         logger.info(f"Markdown report saved to {md_path}")
 
         # Save JSON
-        json_filename = f"competitive_intel_{date_str}_{report.niche}.json"
+        json_filename = f"competitive_intel_{date_str}_{safe_niche}.json"
         json_path = output_dir / json_filename
         json_content = IntelReporter.to_json(report)
         with open(json_path, "w", encoding="utf-8") as f:

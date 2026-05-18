@@ -148,13 +148,6 @@ def generate(
 
     Uses Module 2 competitive report (if exists) to inform copy.
     """
-    valid_niches = ["brain-health", "lung-health", "mens-health"]
-    if niche not in valid_niches:
-        typer.echo(
-            f"[ERROR] Invalid niche '{niche}'. Valid: {', '.join(valid_niches)}", err=True
-        )
-        raise typer.Exit(1)
-
     typer.echo(f"\nGenerating advertorial for: {offer}")
     typer.echo(f"Niche: {niche}")
     typer.echo(f"URL: {url}")

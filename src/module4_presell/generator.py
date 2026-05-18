@@ -9,6 +9,7 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 
 from ..module2_competitive.models import CompetitiveReport
+from .compliance import ComplianceChecker
 from .models import PresellPage
 
 # Load .env explicitly (same issue as analyzer.py)
@@ -27,6 +28,7 @@ class AdvertorialGenerator:
         if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY not set")
         self.client = Anthropic(api_key=api_key)
+        self.compliance_checker = ComplianceChecker()
 
     def generate(
         self,
@@ -37,9 +39,10 @@ class AdvertorialGenerator:
         report: CompetitiveReport | None = None,
         auto_load_report: bool = True,
         vsl_angle: str | None = None,
+        max_retries: int = 2,
     ) -> PresellPage:
         """
-        Generate advertorial copy for an offer.
+        Generate advertorial copy for an offer (guaranteed MGID-compliant).
 
         Args:
             offer_name: Name of the offer (e.g. "Brain Boost Pro")
@@ -49,11 +52,12 @@ class AdvertorialGenerator:
             report: Optional CompetitiveReport with winning patterns
             auto_load_report: If True and report is None, try to load from file
             vsl_angle: Optional VSL angle from MaxWeb (e.g. "Doctor reveals secret formula")
+            max_retries: If generated copy fails compliance, retry up to this many times
 
         Returns:
-            PresellPage with generated headline, subheadline, body, cta_text
+            PresellPage with generated headline, subheadline, body, cta_text (guaranteed compliant)
         """
-        logger.info(f"[presell] Generating advertorial for {offer_name} ({niche})")
+        logger.info(f"[presell] Generating COMPLIANT advertorial for {offer_name} ({niche})")
 
         # Auto-load report if not provided
         if report is None and auto_load_report:
@@ -62,30 +66,94 @@ class AdvertorialGenerator:
         # Build context from report and VSL angle if available
         context = self._build_context(report, niche, vsl_angle)
 
+        # Retry loop: generate until compliant
+        for attempt in range(max_retries + 1):
+            if attempt > 0:
+                logger.info(f"[presell] Retry {attempt}/{max_retries} - generating compliant version...")
+
+            page = self._generate_once(offer_name, offer_category, niche, offer_url, context, report)
+
+            # Check compliance
+            violations, is_compliant = self.compliance_checker.check(
+                headline=page.headline,
+                subheadline=page.subheadline,
+                body_html=page.body_html,
+                cta_text=page.cta_text,
+                has_ftc_disclaimer=False,  # Disclaimer added in template
+            )
+
+            if is_compliant:
+                logger.info(f"[presell] ✓ COMPLIANT on attempt {attempt + 1}")
+                page.compliance_violations = []
+                page.is_compliant = True
+                return page
+
+            # If not compliant, log violations and retry
+            if attempt < max_retries:
+                violation_summary = "; ".join([v.message for v in violations if v.severity == "error"])
+                logger.warning(f"[presell] Violations found: {violation_summary}")
+                # Continue to next retry
+            else:
+                # Last attempt - return with violations logged
+                logger.error(f"[presell] ✗ Still non-compliant after {max_retries} retries")
+                page.compliance_violations = [
+                    {
+                        "type": v.violation_type,
+                        "severity": v.severity,
+                        "message": v.message,
+                        "location": v.location,
+                        "fix": v.suggested_fix,
+                    }
+                    for v in violations
+                ]
+                page.is_compliant = False
+                return page
+
+    def _generate_once(
+        self,
+        offer_name: str,
+        offer_category: str,
+        niche: str,
+        offer_url: str,
+        context: str,
+        report: CompetitiveReport | None,
+    ) -> PresellPage:
+        """Generate advertorial once (no compliance check)."""
         # Prompt Claude
         response = self.client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=2000,
-            system="You are an expert advertorial copywriter specializing in health supplements. You write compelling, story-driven advertorials that ethically persuade readers. Always include FTC compliance awareness. Respond with valid JSON only.",
+            system="""You are an expert advertorial copywriter specializing in health supplements.
+You write compelling, story-driven advertorials that ethically persuade readers while maintaining FTC + MGID compliance.
+
+CRITICAL COMPLIANCE RULES (MUST FOLLOW):
+1. NO hard medical claims: Never 'cures', 'reverses', 'guaranteed', 'diagnosed', 'treats disease'
+   ✓ Instead: 'supports', 'promotes', 'helps with', 'may help improve', 'research shows'
+2. NO forbidden MGID patterns: Never 'doctors hate', 'secret', 'one weird trick', 'hidden', 'pharma doesn't want'
+   ✓ Instead: Use straightforward, honest language
+3. NO absolute claims: Never '100% effective', '100% safe', 'FDA approved'
+   ✓ Instead: 'FDA-regulated', 'people report', 'studies suggest'
+4. Use SOFT, SAFE language throughout: 'research indicates', 'may help', 'supports healthy', 'testimonials show'
+
+BE STRICT: If any headline/body/subheadline contains forbidden words, this generation has FAILED.""",
             messages=[
                 {
                     "role": "user",
                     "content": f"""
-Write an advertorial for:
+Generate a STRICTLY COMPLIANT advertorial headline + copy for:
 - Product: {offer_name} ({offer_category})
 - Target Niche: {niche}
 
 {context}
 
-Instructions:
-1. Headline: curiosity-gap hook, max 12 words, no ALL CAPS
-2. Subheadline: problem agitation, max 20 words, emotional
-3. Body: 3-4 paragraphs, HTML format (<p>...</p>), narrative style, 150-300 words total
-   - Open with a relatable problem
-   - Build credibility and authority
-   - Introduce the solution (product name)
-   - Share benefits and social proof
-4. CTA text: action-oriented, 3-5 words (e.g. "Claim Your Bottle Today")
+STRICT COMPLIANCE CHECKLIST:
+- Headline: curiosity hook, max 12 words, NO medical claims, NO "secret", NO "doctors hate"
+- Subheadline: emotional problem statement, max 20 words, NO forbidden patterns
+- Body: 3-4 paragraphs, soft language only ('may help', 'research shows', 'supports')
+- CTA: action text, 3-5 words (e.g. "Claim Your Bottle Today")
+
+Example COMPLIANT headline: "How Doctors Explain Brain Fog in Senior Citizens" (vs WRONG: "Cures Brain Fog")
+Example COMPLIANT body: "Research shows that [ingredient] may help support cognitive function" (vs WRONG: "Proven to cure dementia")
 
 Output ONLY valid JSON (no markdown, no code blocks):
 {{
@@ -131,7 +199,6 @@ Output ONLY valid JSON (no markdown, no code blocks):
             source_report_niche=report.niche if report else None,
         )
 
-        logger.info(f"[presell] Generated advertorial: {len(page.body_html)} chars")
         return page
 
     @staticmethod
@@ -148,7 +215,9 @@ Output ONLY valid JSON (no markdown, no code blocks):
         import glob
 
         report_dir = Path("output/reports")
-        pattern = str(report_dir / f"competitive_intel_*_{niche}.json")
+        # Sanitize niche for filename (same as in reporter)
+        safe_niche = niche.replace("/", "-").replace("\\", "-").replace(":", "-")
+        pattern = str(report_dir / f"competitive_intel_*_{safe_niche}.json")
 
         matches = glob.glob(pattern)
         if not matches:

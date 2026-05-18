@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{OFFER_NAME} - My Personal Story</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.75;
+            color: #2a2a2a;
+            background: linear-gradient(180deg, #faf5ee 0%, #ffffff 200px);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 48px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        .header {
+            margin-bottom: 28px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: #f4ede0;
+            color: #8a6d3b;
+            padding: 6px 14px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        .breadcrumb {
+            font-size: 12px;
+            color: #999;
+            font-family: Arial, sans-serif;
+            margin-bottom: 4px;
+        }
+
+        h1 {
+            font-family: Georgia, serif;
+            font-size: 30px;
+            font-weight: 700;
+            line-height: 1.25;
+            color: #1a1a1a;
+            margin: 20px 0 14px;
+        }
+
+        h2 {
+            font-size: 18px;
+            color: #555;
+            font-weight: 400;
+            font-style: italic;
+            line-height: 1.4;
+            margin-bottom: 24px;
+        }
+
+        .byline {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: #777;
+            font-family: Arial, sans-serif;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 18px;
+            margin-bottom: 32px;
+        }
+
+        .byline-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #d4a574 0%, #a67c52 100%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .article-body {
+            font-size: 17px;
+        }
+
+        .article-body p {
+            margin-bottom: 18px;
+        }
+
+        .article-body p:first-of-type::first-letter {
+            float: left;
+            font-family: Georgia, serif;
+            font-size: 56px;
+            line-height: 50px;
+            padding-right: 8px;
+            padding-top: 4px;
+            color: #a67c52;
+            font-weight: bold;
+        }
+
+        .cta-box {
+            margin: 36px 0;
+            padding: 30px;
+            background-color: #faf5ee;
+            border-left: 4px solid #a67c52;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #c2845a 0%, #a67c52 100%);
+            color: white;
+            padding: 16px 36px;
+            text-decoration: none;
+            font-size: 17px;
+            font-weight: 600;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            letter-spacing: 0.3px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 4px 12px rgba(166,124,82,0.3);
+            transition: transform 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .urgency {
+            font-size: 13px;
+            color: #8a6d3b;
+            font-family: Arial, sans-serif;
+            font-style: italic;
+        }
+
+        .disclaimer {
+            font-size: 11px;
+            color: #888;
+            line-height: 1.6;
+            margin-top: 36px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-family: Arial, sans-serif;
+        }
+
+        .disclaimer strong {
+            color: #666;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            h2 {
+                font-size: 16px;
+            }
+            .article-body {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="breadcrumb">Real Stories &gt; {NICHE_DISPLAY}</div>
+            <div class="badge">Reader Story · Advertisement</div>
+            <h1>{HEADLINE}</h1>
+            <h2>{SUBHEADLINE}</h2>
+        </div>
+
+        <div class="byline">
+            <span class="byline-avatar">S</span>
+            <span><strong>Sarah M.</strong> · As told to our editorial team · Shared on this site as part of a sponsored partnership.</span>
+        </div>
+
+        <div class="article-body">
+            {BODY_HTML}
+        </div>
+
+        <div class="cta-box">
+            <a href="{OFFER_URL}" class="cta-button" data-cta>{CTA_TEXT}</a>
+            <div class="urgency">Stories like this one inspired thousands — see what they're using</div>
+        </div>
+
+        <div class="disclaimer">
+            <strong>Disclosure:</strong> This is a paid advertisement based on a reader's personal experience. <strong>Results may vary.</strong> Individual stories are not typical and these statements have not been evaluated by the FDA. This product is not intended to diagnose, treat, cure, or prevent any disease. Consult a healthcare professional before use. See Terms &amp; Conditions for full disclosure.
+        </div>
+    </div>
+
+    <!-- ClickHub click tracking: append ?clickid=<value> to all CTA hrefs -->
+    <script>
+    (function() {
+        var clickId = new URLSearchParams(window.location.search).get("clickid") || "";
+        if (!clickId) return;
+        document.addEventListener("DOMContentLoaded", function() {
+            var ctas = document.querySelectorAll("a.cta-button, a[data-cta]");
+            ctas.forEach(function(a) {
+                try {
+                    var u = new URL(a.href, window.location.href);
+                    u.searchParams.set("clickid", clickId);
+                    a.href = u.toString();
+                } catch (e) {
+                    var sep = a.href.indexOf("?") === -1 ? "?" : "&";
+                    a.href = a.href + sep + "clickid=" + encodeURIComponent(clickId);
+                }
+            });
+            setTimeout(function() {
+                var img = new Image();
+                img.src = "https://petalvane.com/event/1?click_id=" + encodeURIComponent(clickId);
+            }, 4000);
+        });
+    })();
+    </script>
+</body>
+</html>

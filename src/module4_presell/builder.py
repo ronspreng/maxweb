@@ -12,18 +12,26 @@ logger = logging.getLogger(__name__)
 class AdvertorialBuilder:
     """Generate HTML from PresellPage."""
 
+    # Beschikbare layout-varianten — voor A/B testing op visuele layout
+    VARIANTS = {
+        "news": "advertorial.html",          # Klassieke news-article style (default)
+        "story": "advertorial_story.html",   # Personal-reader-story style
+    }
+
     @staticmethod
-    def build(page: PresellPage) -> str:
+    def build(page: PresellPage, variant: str = "news") -> str:
         """
         Build HTML string from PresellPage.
 
         Args:
             page: PresellPage with all content fields
+            variant: Layout-variant — "news" (default) of "story"
 
         Returns:
             HTML string ready to write to file
         """
-        template_path = Path(__file__).parent / "templates" / "advertorial.html"
+        template_file = AdvertorialBuilder.VARIANTS.get(variant, AdvertorialBuilder.VARIANTS["news"])
+        template_path = Path(__file__).parent / "templates" / template_file
         if not template_path.exists():
             raise FileNotFoundError(f"Template not found: {template_path}")
 
@@ -48,6 +56,29 @@ class AdvertorialBuilder:
 
         logger.debug(f"[presell] Built HTML: {len(html)} bytes")
         return html
+
+    @staticmethod
+    def build_and_check(page: PresellPage, variant: str = "news") -> tuple[str, list, bool]:
+        """Build HTML + compliance-check de FINAL gerenderde pagina.
+
+        Args:
+            page: PresellPage
+            variant: Layout-variant — "news" of "story"
+
+        Returns:
+            (html_string, violations_list, is_compliant)
+        """
+        from .compliance import ComplianceChecker
+        html = AdvertorialBuilder.build(page, variant=variant)
+        checker = ComplianceChecker()
+        violations, is_compliant = checker.check_html(html)
+        if not is_compliant:
+            error_count = sum(1 for v in violations if v.severity == "error")
+            logger.warning(
+                f"[presell] Final HTML compliance: {error_count} errors found "
+                f"in rendered template (not just AI-generated body)"
+            )
+        return html, violations, is_compliant
 
     @staticmethod
     def save(page: PresellPage, output_dir: Path) -> Path:

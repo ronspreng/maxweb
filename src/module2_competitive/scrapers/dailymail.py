@@ -3,11 +3,15 @@ Daily Mail US health/lifestyle native ad scraper.
 Targets sections heavy with older US demographic content.
 """
 
+import json
 import logging
+import random
+import re
+import time
 
-from playwright.sync_api import Page
+import requests
+from bs4 import BeautifulSoup
 
-from .base import NativeAdScraperBase
 from ..models import NativeAd
 
 logger = logging.getLogger(__name__)
@@ -28,61 +32,106 @@ FALLBACK_URLS = [
     "https://www.dailymail.co.uk/news/us/index.html",
 ]
 
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+]
 
-class DailyMailScraper(NativeAdScraperBase):
-    """Scraper for Daily Mail US — heavy Taboola native ad placement."""
 
-    @property
-    def source_name(self) -> str:
-        return "dailymail"
+class DailyMailScraper:
+    """Scraper for Daily Mail US — native ad extraction using requests + BeautifulSoup."""
 
-    @property
-    def target_urls(self) -> list[str]:
+    def __init__(self, niche: str):
+        self.niche = niche
+        self.source_name = "dailymail"
+
+    def scrape(self) -> list[NativeAd]:
+        """Scrape Daily Mail health articles as winning headlines."""
+        all_ads: list[NativeAd] = []
+
         urls = NICHE_URLS.get(self.niche, FALLBACK_URLS)
-        return urls[:2]
+        headers = {
+            "User-Agent": random.choice(USER_AGENTS),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+        }
 
-    def extract_from_dom(self, page: Page) -> list[NativeAd]:
+        for url in urls:
+            logger.info(f"[dailymail] Scraping: {url}")
+            try:
+                resp = requests.get(url, headers=headers, timeout=15)
+                resp.raise_for_status()
+
+                soup = BeautifulSoup(resp.text, "html.parser")
+
+                # Extract article headlines as "winning language"
+                ads = self._extract_article_headlines(soup)
+                logger.info(f"[dailymail] Found {len(ads)} article headlines from {url}")
+                all_ads.extend(ads)
+
+                time.sleep(random.uniform(2, 5))
+
+            except Exception as e:
+                logger.warning(f"[dailymail] Error scraping {url}: {e}")
+
+        return all_ads
+
+    def _extract_article_headlines(self, soup: BeautifulSoup) -> list[NativeAd]:
         """
-        DOM fallback: look for Taboola widget containers.
-        Taboola on DailyMail uses: div[id^='taboola-'] > .trc_rbox_div .thumbnails-item
+        Extract Daily Mail article headlines as winning native ad language.
+        These headlines are optimized for clicks and engagement.
         """
         ads = []
-        try:
-            page.wait_for_selector(
-                "[id^='taboola-'] .thumbnails-item, .trc-content-sponsored",
-                timeout=8000,
-            )
-        except Exception:
-            logger.debug("[dailymail] Taboola container not found in DOM")
-            return ads
+        seen_urls = set()
 
-        items = page.query_selector_all(".thumbnails-item, .trc-content-sponsored")
-        for i, item in enumerate(items):
+        # Find all article links with headlines
+        links = soup.find_all("a", href=re.compile(r"/health/article-"))
+
+        for link in links:
             try:
-                headline_el = item.query_selector(".trc-item-title, [class*='title']")
-                link_el = item.query_selector("a")
-                img_el = item.query_selector("img")
+                headline = link.get_text(strip=True)
+                url = link.get("href", "").strip()
 
-                headline = headline_el.inner_text().strip() if headline_el else ""
-                landing_url = link_el.get_attribute("href") or "" if link_el else ""
-                image_url = img_el.get_attribute("src") if img_el else None
-
-                if not headline or not landing_url:
+                # Filter for quality headlines
+                if not headline or not url:
+                    continue
+                if len(headline) < 15 or len(headline) > 300:
+                    continue
+                if url in seen_urls:
                     continue
 
-                ads.append(
-                    NativeAd(
-                        headline=headline,
-                        image_url=image_url,
-                        landing_url=landing_url,
-                        source_site=self.source_name,
-                        niche=self.niche,
-                        ad_network="taboola",
-                        position=i,
-                        fingerprint=self._fingerprint(headline, landing_url),
-                    )
+                # Make absolute URL
+                if url.startswith("/"):
+                    url = f"https://www.dailymail.co.uk{url}"
+
+                seen_urls.add(url)
+
+                ad = NativeAd(
+                    headline=headline,
+                    landing_url=url,
+                    source_site=self.source_name,
+                    niche=self.niche,
+                    ad_network="native",
+                    fingerprint=self._fingerprint(headline, url),
                 )
+                ads.append(ad)
+
+                if len(ads) >= 30:  # Limit to 30 articles
+                    break
+
             except Exception as e:
-                logger.debug(f"Item parse error: {e}")
+                logger.debug(f"[dailymail] Error parsing link: {e}")
+                continue
 
         return ads
+
+    @staticmethod
+    def _fingerprint(headline: str, url: str) -> str:
+        """Create unique fingerprint for deduplication."""
+        import hashlib
+        from urllib.parse import urlparse
+
+        domain = urlparse(url).netloc
+        raw = f"{headline.lower().strip()}|{domain}"
+        return hashlib.sha256(raw.encode()).hexdigest()[:16]

@@ -27,7 +27,37 @@
       "PowerShell($env:PYTHONIOENCODING = \"utf-8\"; cd c:\\\\data\\\\Claude\\\\MaxWeb; python build_articles.py | grep -E \"Found|---\")",
       "Bash(python build_articles.py)",
       "Bash(git push *)",
-      "Read(//c/data/Claude/MaxWeb/output/presell_site/articles/**)"
+      "Read(//c/data/Claude/MaxWeb/output/presell_site/articles/**)",
+      "PowerShell(Get-Process streamlit -ErrorAction SilentlyContinue)",
+      "Bash(Get-Process -Name streamlit -ErrorAction SilentlyContinue)",
+      "Bash(Stop-Process -Force)",
+      "PowerShell(Get-Process -Name streamlit -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force)",
+      "Bash(rm -f output/presell_site/articles/brain-fog-and-memory-loss*)",
+      "Bash(curl -s http://localhost:7860)",
+      "Bash(streamlit run *)",
+      "PowerShell($csv = Import-Csv C:\\\\data\\\\Claude\\\\MaxWeb\\\\maxweb_campaigns.csv; $csv.Category | Sort-Object -Unique)",
+      "WebFetch(domain:maxweb.com)",
+      "PowerShell(Get-Process | Where-Object {$_.ProcessName -match \"streamlit|python\"} | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Write-Host \"✓ Streamlit stopped\")",
+      "Bash(netstat -ano)",
+      "PowerShell(Get-Process | Where-Object {$_.ProcessName -match \"streamlit|python\"} | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3; Write-Host \"✓ Streamlit stopped\")",
+      "Bash(nThis file *)",
+      "Bash(powershell -Command \"Get-Date -Format 'Built at: yyyy-MM-dd HH:mm:ss`nThis file forces Vercel to redeploy with latest files.' | Set-Content output/presell_site/.build-timestamp -Encoding UTF8\")",
+      "Bash(git check-ignore *)",
+      "Bash(rm \"c:\\\\data\\\\Claude\\\\MaxWeb\\\\output\\\\presell_site\\\\articles\\\\brain-fog-and-memory-loss-in-aging--understanding-the-science.html\")",
+      "Bash(python -c \"from src.module4_presell.editorial_generator import EditorialGenerator; eg = EditorialGenerator\\(\\); page = eg.generate\\(['brain fog', 'memory loss', 'aging'], 'Brain Health/Memory'\\); from src.module4_presell.site_builder import PresellSiteBuilder; sb = PresellSiteBuilder\\(\\); sb.add_page\\(page, '<h1>Brain Fog and Memory Loss in Aging: Understanding the Science</h1>' + page.body_html, 'articles'\\)\")",
+      "Bash(cat)",
+      "Bash(python /tmp/fix_articles.py)",
+      "Bash(git checkout *)",
+      "Bash(python /tmp/fix_articles_v2.py)",
+      "Bash(python -m http.server 8000)",
+      "Bash(python /tmp/add_metadata.py)",
+      "Bash(python /tmp/add_metadata_correct.py)",
+      "Bash(python -c \"from src.module2_competitive.scrapers.reddit import RedditScraper; scraper = RedditScraper\\('brain-health'\\); scraper._scrape_subreddit\\('Nootropics'\\)\")",
+      "Bash(python -c ' *)"
+    ],
+    "additionalDirectories": [
+      "C:\\data\\Claude\\MaxWeb\\output\\presell_site\\articles"
     ]
   }
 }

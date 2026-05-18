@@ -164,13 +164,40 @@
         </div>
 
         <div class="cta-box">
-            <a href="{OFFER_URL}" class="cta-button">{CTA_TEXT}</a>
+            <a href="{OFFER_URL}" class="cta-button" data-cta>{CTA_TEXT}</a>
             <div class="urgency">⚠ Limited Availability - Supplies Running Low</div>
         </div>
 
         <div class="disclaimer">
-            <strong>Disclaimer:</strong> This content is a paid advertisement. Results may vary depending on individual factors. The information provided is for educational purposes and should not be considered medical advice. Consult with a healthcare professional before starting any supplement regimen. Individual results may vary. The advertiser makes no representations about the accuracy of this information.
+            <strong>Disclosure:</strong> This is a paid advertisement. <strong>Results may vary.</strong> These statements have not been evaluated by the FDA. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results shown may not be typical. Consult a healthcare professional before use. See Terms & Conditions for full disclosure.
         </div>
     </div>
+
+    <!-- ClickHub click tracking: append ?clickid=<value> to all CTA hrefs -->
+    <script>
+    (function() {
+        var clickId = new URLSearchParams(window.location.search).get("clickid") || "";
+        if (!clickId) return;
+        document.addEventListener("DOMContentLoaded", function() {
+            var ctas = document.querySelectorAll("a.cta-button, a[data-cta]");
+            ctas.forEach(function(a) {
+                try {
+                    var u = new URL(a.href, window.location.href);
+                    u.searchParams.set("clickid", clickId);
+                    a.href = u.toString();
+                } catch (e) {
+                    // fallback for relative or invalid hrefs
+                    var sep = a.href.indexOf("?") === -1 ? "?" : "&";
+                    a.href = a.href + sep + "clickid=" + encodeURIComponent(clickId);
+                }
+            });
+            // Fire LP view pixel after 4s for ClickHub LP-CTR tracking
+            setTimeout(function() {
+                var img = new Image();
+                img.src = "https://petalvane.com/event/1?click_id=" + encodeURIComponent(clickId);
+            }, 4000);
+        });
+    })();
+    </script>
 </body>
 </html>

@@ -32,6 +32,7 @@ except ImportError:
 
 from .analyzer import PatternAnalyzer
 from .deduplicator import AdDeduplicator
+from .keywords import extract_keywords
 from .models import NativeAd
 from .reporter import IntelReporter
 from .scrapers.amazon import AmazonReviewsScraper
@@ -52,7 +53,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-VALID_NICHES = ["brain-health", "lung-health", "mens-health"]
 OUTPUT_DIR = Path("output/reports")
 DATA_CACHE_DIR = Path("data/competitive")
 
@@ -60,7 +60,7 @@ DATA_CACHE_DIR = Path("data/competitive")
 @app.command()
 def scrape(
     niche: str = typer.Option(
-        ..., "--niche", help=f"Niche to scrape. One of: {', '.join(VALID_NICHES)}"
+        ..., "--niche", help="Health niche/category to scrape (e.g. 'brain-health', 'Diabetes', 'Men\'s Health')"
     ),
     output: Path = typer.Option(
         None,
@@ -73,9 +73,14 @@ def scrape(
         help="Scrape only, skip Claude API analysis (save for later)",
     ),
     sources: str = typer.Option(
-        "reddit,amazon,quora",
+        "dailymail",
         "--sources",
-        help="Comma-separated scrape sources (reddit, amazon, quora, dailymail, msn, yahoo)",
+        help="Comma-separated scrape sources (dailymail works; reddit/amazon/quora/msn/yahoo blocked by anti-scraping measures)",
+    ),
+    keywords: str = typer.Option(
+        None,
+        "--keywords",
+        help="Comma-separated search keywords (auto-extracted from niche if not set)",
     ),
 ) -> None:
     """
@@ -83,16 +88,19 @@ def scrape(
 
     Examples:
         python -m src.module2_competitive scrape --niche brain-health
-        python -m src.module2_competitive scrape --niche mens-health --skip-analysis
+        python -m src.module2_competitive scrape --niche "Joint Supplement"
     """
-    if niche not in VALID_NICHES:
-        typer.echo(f"[ERROR] Invalid niche '{niche}'. Valid: {', '.join(VALID_NICHES)}", err=True)
-        raise typer.Exit(1)
-
     source_list = [s.strip() for s in sources.split(",")]
     cache_path = DATA_CACHE_DIR / f"{niche}_ads.json"
 
+    # Use provided keywords or extract from niche
+    if keywords:
+        keywords_list = [k.strip() for k in keywords.split(",")]
+    else:
+        keywords_list = extract_keywords(niche)
+
     typer.echo(f"\nScraping native ads for niche: {niche}")
+    typer.echo(f"Keywords: {', '.join(keywords_list)}")
     typer.echo(f"Sources: {', '.join(source_list)}")
     typer.echo("=" * 60)
 
@@ -108,7 +116,7 @@ def scrape(
         typer.echo(f"  Scraping {source}...")
         try:
             if source == "reddit":
-                scraper = RedditScraper(niche)
+                scraper = RedditScraper(niche, keywords=keywords_list)
             elif source == "amazon":
                 scraper = AmazonReviewsScraper(niche)
             elif source == "quora":
