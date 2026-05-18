@@ -5,6 +5,7 @@ Reddit health niches scraper for pain points and winning language patterns.
 import json
 import logging
 import re
+import time
 from typing import Optional
 
 import requests
@@ -20,23 +21,63 @@ NICHE_SUBREDDITS = {
     "mens-health": ["MentalHealth", "FitnessandNutrition", "Testosterone", "MenHealth"],
 }
 
+# Keyword → subreddit mappings for fallback
+KEYWORD_SUBREDDITS = {
+    "joint": ["JointHealth", "Arthritis", "Fitness"],
+    "supplement": ["Supplements", "Health", "HealthAdvice"],
+    "memory": ["Nootropics", "Cognition", "BrainFog"],
+    "brain": ["Nootropics", "Cognition", "Productivity"],
+    "health": ["Health", "HealthAdvice", "Medicine"],
+    "fitness": ["Fitness", "FitnessandNutrition"],
+    "diabetes": ["Diabetes", "Health", "HealthAdvice"],
+    "lung": ["Asthma", "Breathing", "RespiratoryHealth"],
+    "sleep": ["sleep", "insomnia", "Health"],
+    "weight": ["loseit", "EatCheapAndHealthy", "FitnessandNutrition"],
+}
+
+# Generic fallback
+GENERIC_SUBREDDITS = ["Health", "HealthAdvice", "Medicine", "AskDocs"]
+
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
 ]
 
 
 class RedditScraper:
     """Scrape Reddit posts for health pain points and winning language."""
 
-    def __init__(self, niche: str):
+    def __init__(self, niche: str, keywords: list[str] | None = None):
         self.niche = niche
-        self.subreddits = NICHE_SUBREDDITS.get(niche, [])
+
+        # Use hardcoded subreddits if niche is mapped
+        if niche in NICHE_SUBREDDITS:
+            self.subreddits = NICHE_SUBREDDITS[niche]
+        else:
+            # Fallback: try to find subreddits from keywords
+            subreddits_set = set()
+            if keywords:
+                for keyword in keywords:
+                    keyword_lower = keyword.lower()
+                    if keyword_lower in KEYWORD_SUBREDDITS:
+                        subreddits_set.update(KEYWORD_SUBREDDITS[keyword_lower])
+
+            # If no keywords matched, use generic subreddits
+            if subreddits_set:
+                self.subreddits = list(subreddits_set)[:6]  # Limit to 6
+            else:
+                self.subreddits = GENERIC_SUBREDDITS
 
     def scrape(self) -> list[NativeAd]:
         """Scrape Reddit posts and convert to NativeAd objects."""
         all_ads = []
 
-        for subreddit in self.subreddits:
+        for i, subreddit in enumerate(self.subreddits):
+            if i > 0:
+                # Rate limit: wait between requests to avoid 429/500 errors
+                time.sleep(2)
+
             logger.info(f"[reddit] Scraping /r/{subreddit}")
             posts = self._scrape_subreddit(subreddit)
             all_ads.extend(posts)
@@ -47,15 +88,31 @@ class RedditScraper:
     def _scrape_subreddit(self, subreddit: str) -> list[NativeAd]:
         """Scrape a single subreddit for top posts."""
         ads = []
+        import random
 
         try:
-            # Use pushshift/Reddit API to get posts
+            # Use Reddit API with better headers
             url = f"https://www.reddit.com/r/{subreddit}/top.json?t=month&limit=30"
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                "User-Agent": random.choice(USER_AGENTS),
+                "Accept": "application/json",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate",
+                "Connection": "keep-alive",
             }
 
-            response = requests.get(url, headers=headers, timeout=10)
+            response = requests.get(url, headers=headers, timeout=15)
+
+            # Handle rate limiting
+            if response.status_code == 429:
+                logger.warning(f"[reddit] Rate limited on /r/{subreddit}, waiting...")
+                time.sleep(5)
+                return []
+
+            if response.status_code == 500:
+                logger.warning(f"[reddit] Server error on /r/{subreddit}, skipping...")
+                return []
+
             response.raise_for_status()
             data = response.json()
 
