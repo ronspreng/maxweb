@@ -837,63 +837,67 @@ with tabs[3]:
         st.divider()
         st.subheader("📤 Export for Ad Platforms")
 
-        col1, col2, col3, col4 = st.columns(4)
+        # Only show exports if creatives have been generated
+        if hasattr(st.session_state, 'creative_set') and st.session_state.creative_set:
+            col1, col2, col3, col4 = st.columns(4)
 
-        with col1:
-            mgid_csv = CreativeExporter.to_mgid_csv(
-                st.session_state.creative_set,
-                offer_slug=_offer_slug,
-                site_url=_presell_url or None,
-                click_url=st.session_state.get("clickhub_campaign_url", "") or None,
-            )
-            st.download_button(
-                label="📌 MGID Format",
-                data=mgid_csv,
-                file_name=f"mgid_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{st.session_state.creative_set.generated_at.strftime('%Y%m%d')}.csv",
-                mime="text/csv",
-                key="creative_export_mgid"
-            )
-            st.caption("Copy-paste into MGID dashboard")
+            with col1:
+                mgid_csv = CreativeExporter.to_mgid_csv(
+                    st.session_state.creative_set,
+                    offer_slug=_offer_slug,
+                    site_url=_presell_url or None,
+                    click_url=st.session_state.get("clickhub_campaign_url", "") or None,
+                )
+                st.download_button(
+                    label="📌 MGID Format",
+                    data=mgid_csv,
+                    file_name=f"mgid_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{st.session_state.creative_set.generated_at.strftime('%Y%m%d')}.csv",
+                    mime="text/csv",
+                    key="creative_export_mgid"
+                )
+                st.caption("Copy-paste into MGID dashboard")
 
-        with col2:
-            taboola_csv = CreativeExporter.to_taboola_csv(
-                st.session_state.creative_set,
-                offer_slug=_offer_slug,
-                site_url=_presell_url or None,
-                click_url=st.session_state.get("clickhub_campaign_url", "") or None,
-            )
-            st.download_button(
-                label="🎯 Taboola Format",
-                data=taboola_csv,
-                file_name=f"taboola_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{st.session_state.creative_set.generated_at.strftime('%Y%m%d')}.csv",
-                mime="text/csv",
-                key="creative_export_taboola"
-            )
-            st.caption("Copy-paste into Taboola dashboard")
+            with col2:
+                taboola_csv = CreativeExporter.to_taboola_csv(
+                    st.session_state.creative_set,
+                    offer_slug=_offer_slug,
+                    site_url=_presell_url or None,
+                    click_url=st.session_state.get("clickhub_campaign_url", "") or None,
+                )
+                st.download_button(
+                    label="🎯 Taboola Format",
+                    data=taboola_csv,
+                    file_name=f"taboola_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{st.session_state.creative_set.generated_at.strftime('%Y%m%d')}.csv",
+                    mime="text/csv",
+                    key="creative_export_taboola"
+                )
+                st.caption("Copy-paste into Taboola dashboard")
 
-        with col3:
-            image_gen_csv = CreativeExporter.to_image_generation_csv(st.session_state.creative_set)
-            st.download_button(
-                label="🎨 Image Prompts",
-                data=image_gen_csv,
-                file_name=f"image_prompts_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{st.session_state.creative_set.generated_at.strftime('%Y%m%d')}.csv",
-                mime="text/csv",
-                key="creative_export_images"
-            )
-            st.caption("For DALL-E 3 / Midjourney")
+            with col3:
+                image_gen_csv = CreativeExporter.to_image_generation_csv(st.session_state.creative_set)
+                st.download_button(
+                    label="🎨 Image Prompts",
+                    data=image_gen_csv,
+                    file_name=f"image_prompts_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{st.session_state.creative_set.generated_at.strftime('%Y%m%d')}.csv",
+                    mime="text/csv",
+                    key="creative_export_images"
+                )
+                st.caption("For DALL-E 3 / Midjourney")
 
-        with col4:
-            generic_csv = CreativeExporter.to_generic_csv(st.session_state.creative_set)
-            st.download_button(
-                label="📋 Full CSV",
-                data=generic_csv,
-                file_name=f"creatives_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{st.session_state.creative_set.generated_at.strftime('%Y%m%d')}.csv",
-                mime="text/csv",
-                key="creative_export_generic"
-            )
-            st.caption("All details for reference")
+            with col4:
+                generic_csv = CreativeExporter.to_generic_csv(st.session_state.creative_set)
+                st.download_button(
+                    label="📋 Full CSV",
+                    data=generic_csv,
+                    file_name=f"creatives_{niche}_{st.session_state.selected_offer.lower().replace(' ', '')}_{st.session_state.creative_set.generated_at.strftime('%Y%m%d')}.csv",
+                    mime="text/csv",
+                    key="creative_export_generic"
+                )
+                st.caption("All details for reference")
 
-        st.info("Go to Step 5 (Pre-sell) to build landing pages for selected creatives →")
+            st.info("Go to Step 5 (Pre-sell) to build landing pages for selected creatives →")
+        else:
+            st.info("💡 Generate creatives first (Step 4 button above) to see export options")
 
 
 # ===== TAB 5: PRESELL PAGES (PER ANGLE) =====
