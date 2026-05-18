@@ -87,3 +87,36 @@ class ApifyClient:
         except Exception as e:
             logger.error(f"[apify] Quora scrape error: {e}")
             return []
+
+    def scrape_reddit_posts(self, subreddit: str, sort: str = "top", period: str = "month", max_posts: int = 30) -> list[dict]:
+        """
+        Scrape Reddit posts using Apify's Reddit scraper.
+        """
+        if not self.enabled:
+            logger.debug("[apify] Not enabled, skipping Reddit scrape")
+            return []
+
+        try:
+            # Apify has multiple Reddit scrapers; this uses a popular one
+            actor_id = "miscappi/reddit-scraper"
+
+            input_data = {
+                "subreddit": subreddit,
+                "sort": sort,
+                "time": period,
+                "postsLimit": max_posts,
+                "includeComments": False,
+            }
+
+            logger.info(f"[apify] Running actor {actor_id} for /r/{subreddit}")
+            run = self.client.actor(actor_id).call(run_input=input_data)
+
+            dataset_client = self.client.dataset(run["defaultDatasetId"])
+            posts = list(dataset_client.iterate_items())
+
+            logger.info(f"[apify] Got {len(posts)} posts from /r/{subreddit}")
+            return posts
+
+        except Exception as e:
+            logger.error(f"[apify] Reddit scrape error: {e}")
+            return []
