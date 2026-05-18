@@ -130,14 +130,24 @@ def main():
 <body>
     <header class="site-header">
         <div class="container">
-            <a href="/" class="logo">Health & Wellness</a>
+            <div>
+                <h1 class="logo">Health & Wellness</h1>
+                <p class="tagline">Expert insights and wellness tips</p>
+            </div>
             <nav>
-                <a href="/">All Articles</a>
+                <a href="/">Home</a>
+                <a href="/about.html">About</a>
+                <a href="/disclaimer.html">Disclaimer</a>
+                <a href="/privacy-policy.html">Privacy</a>
+                <a href="/terms-of-service.html">Terms</a>
+                <a href="/contact.html">Contact</a>
             </nav>
         </div>
     </header>
 
-    {article_html}
+    <main class="container article-container">
+        {article_html}
+    </main>
 
     <footer class="site-footer">
         <div class="container">
