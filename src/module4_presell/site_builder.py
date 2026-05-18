@@ -121,6 +121,10 @@ class PresellSiteBuilder:
             counter += 1
             logger.info(f"[site] Filename {base_slug}.html exists, trying {filename}")
 
+        # Add metadata and badges to article if not already present
+        if "article-meta" not in article_html:
+            article_html = self._add_metadata_and_badges(article_html, page)
+
         # Wrap in article template with navigation
         html = self._wrap_article(page, article_html, slug)
 
@@ -138,6 +142,40 @@ class PresellSiteBuilder:
             logger.info(f"[site] Skipped index update for presell ad: {filename}")
 
         return filepath
+
+    def _add_metadata_and_badges(self, article_html: str, page: PresellPage) -> str:
+        """Add metadata and trust badges to article content after H1 title."""
+        metadata_badges = """
+            <!-- Article Meta Info -->
+            <div class="article-meta">
+                <div class="article-meta-item">
+                    <strong>Published:</strong> May 2026
+                </div>
+                <div class="article-meta-item">
+                    <strong>Updated:</strong> May 10, 2026
+                </div>
+                <div class="article-meta-item">
+                    <strong>Read Time:</strong> 6 minutes
+                </div>
+                <div class="article-meta-item">
+                    <strong>Category:</strong> Brain Health & Wellness
+                </div>
+            </div>
+
+            <!-- Trust Badges -->
+            <div class="trust-badges">
+                <span class="badge">Evidence-Based Research</span>
+                <span class="badge">Expert Reviewed</span>
+                <span class="badge">Medically Accurate</span>
+                <span class="badge">Updated 2026</span>
+            </div>"""
+
+        # Insert metadata and badges after the first H1 tag
+        pattern = r'(<h1[^>]*>.*?</h1>)'
+        replacement = r'\1' + metadata_badges
+        result = re.sub(pattern, replacement, article_html, count=1, flags=re.IGNORECASE | re.DOTALL)
+
+        return result
 
     def _wrap_article(self, page: PresellPage, body_html: str, slug: str) -> str:
         """Wrap presell page in article template with navigation."""
