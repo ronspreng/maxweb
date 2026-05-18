@@ -86,71 +86,72 @@ class RedditScraper:
         return all_ads[:50]  # Top 50 posts
 
     def _scrape_subreddit(self, subreddit: str) -> list[NativeAd]:
-        """Scrape a single subreddit for top posts."""
+        """Scrape a single subreddit using browser automation to bypass blocks."""
         ads = []
-        import random
 
         try:
-            # Use Reddit API with better headers
-            url = f"https://www.reddit.com/r/{subreddit}/top.json?t=month&limit=30"
-            headers = {
-                "User-Agent": random.choice(USER_AGENTS),
-                "Accept": "application/json",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Accept-Encoding": "gzip, deflate",
-                "Connection": "keep-alive",
-            }
-
-            response = requests.get(url, headers=headers, timeout=15)
-
-            # Handle rate limiting
-            if response.status_code == 429:
-                logger.warning(f"[reddit] Rate limited on /r/{subreddit}, waiting...")
-                time.sleep(5)
-                return []
-
-            if response.status_code == 500:
-                logger.warning(f"[reddit] Server error on /r/{subreddit}, skipping...")
-                return []
-
-            response.raise_for_status()
-            data = response.json()
-
-            for post in data.get("data", {}).get("children", []):
-                post_data = post.get("data", {})
-
-                title = post_data.get("title", "").strip()
-                score = post_data.get("score", 0)
-                num_comments = post_data.get("num_comments", 0)
-
-                if not title or len(title) < 10:
-                    continue
-
-                # Extract pain points from title
-                pain_points = self._extract_pain_points(title)
-                if not pain_points:
-                    continue
-
-                post_url = f"https://reddit.com{post_data.get('permalink', '')}"
-
-                ads.append(
-                    NativeAd(
-                        headline=title,
-                        landing_url=post_url,
-                        source_site="reddit",
-                        niche=self.niche,
-                        ad_network="reddit",
-                        fingerprint=self._fingerprint(title),
-                        metadata={
-                            "score": score,
-                            "comments": num_comments,
-                            "subreddit": subreddit,
-                            "pain_points": pain_points,
-                        },
-                    )
+            with sync_playwright() as p:
+                # Use browser to bypass API blocks
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context(
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
                 )
+                page = context.new_page()
 
-            logger.info(f"[reddit] /r/{subreddit}: {len(ads)} posts collected")
+                url = f"https://www.reddit.com/r/{subreddit}/top/?t=month"
+                logger.info(f"[reddit] Loading {url}")
+
+                try:
+                    page.goto(url, wait_until="networkidle", timeout=30000)
+                except:
+                    # If page times out, try without waiting for network
+                    page.goto(url, wait_until="domcontentloaded", timeout=20000)
+
+                # Wait for posts to load
+                time.sleep(2)
+
+                # Extract posts from page
+                posts = page.locator('h3').all()
+
+                for post_element in posts[:30]:
+                    try:
+                        title = post_element.text_content().strip()
+
+                        if not title or len(title) < 10:
+                            continue
+
+                        # Extract pain points
+                        pain_points = self._extract_pain_points(title)
+                        if not pain_points:
+                            continue
+
+                        # Find parent post link
+                        post_link = post_element.locator("xpath=ancestor::a[1]")
+                        href = post_link.get_attribute("href") or ""
+
+                        if not href.startswith("/r/"):
+                            continue
+
+                        ads.append(
+                            NativeAd(
+                                headline=title,
+                                landing_url=f"https://reddit.com{href}",
+                                source_site="reddit",
+                                niche=self.niche,
+                                ad_network="reddit",
+                                fingerprint=self._fingerprint(title),
+                                metadata={
+                                    "subreddit": subreddit,
+                                    "pain_points": pain_points,
+                                },
+                            )
+                        )
+                    except Exception as e:
+                        logger.debug(f"[reddit] Error parsing post: {e}")
+                        continue
+
+                browser.close()
+                logger.info(f"[reddit] /r/{subreddit}: {len(ads)} posts collected")
 
         except Exception as e:
             logger.error(f"[reddit] Error scraping /r/{subreddit}: {e}")
