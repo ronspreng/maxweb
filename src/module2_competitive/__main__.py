@@ -35,12 +35,12 @@ from .deduplicator import AdDeduplicator
 from .keywords import extract_keywords
 from .models import NativeAd
 from .reporter import IntelReporter
-from .scrapers.amazon import AmazonReviewsScraper
-from .scrapers.quora import QuoraAnswerScraper
-from .scrapers.reddit import RedditScraper
 from .scrapers.dailymail import DailyMailScraper
-from .scrapers.msn import MSNScraper
-from .scrapers.yahoo import YahooScraper
+from .scrapers.news_sources import (
+    HealthLineScraper,
+    MedicalNewsTodayScraper,
+    NPRScraper,
+)
 
 app = typer.Typer(
     name="module2-competitive",
@@ -73,9 +73,9 @@ def scrape(
         help="Scrape only, skip Claude API analysis (save for later)",
     ),
     sources: str = typer.Option(
-        "dailymail",
+        "healthline,medicalnewstoday,npr,dailymail",
         "--sources",
-        help="Comma-separated scrape sources (dailymail works; reddit/amazon/quora/msn/yahoo blocked by anti-scraping measures)",
+        help="Comma-separated scrape sources (healthline, medicalnewstoday, npr, dailymail recommended)",
     ),
     keywords: str = typer.Option(
         None,
@@ -115,26 +115,24 @@ def scrape(
     for source in source_list:
         typer.echo(f"  Scraping {source}...")
         try:
-            if source == "reddit":
-                scraper = RedditScraper(niche, keywords=keywords_list)
-            elif source == "amazon":
-                scraper = AmazonReviewsScraper(niche)
-            elif source == "quora":
-                scraper = QuoraAnswerScraper(niche)
+            scraper = None
+            if source == "healthline":
+                scraper = HealthLineScraper(niche)
+            elif source == "medicalnewstoday":
+                scraper = MedicalNewsTodayScraper(niche)
+            elif source == "npr":
+                scraper = NPRScraper(niche)
             elif source == "dailymail":
                 scraper = DailyMailScraper(niche=niche)
-            elif source == "msn":
-                scraper = MSNScraper(niche=niche)
-            elif source == "yahoo":
-                scraper = YahooScraper(niche=niche)
             else:
                 typer.echo(f"[WARN] Unknown source '{source}', skipping", err=True)
                 continue
 
-            ads = scraper.scrape()
-            unique_ads = deduplicator.deduplicate(ads)
-            all_ads.extend(unique_ads)
-            typer.echo(f"  -> {len(unique_ads)} unique from {source}")
+            if scraper:
+                ads = scraper.scrape()
+                unique_ads = deduplicator.deduplicate(ads)
+                all_ads.extend(unique_ads)
+                typer.echo(f"  -> {len(unique_ads)} unique from {source}")
         except Exception as e:
             logger.error(f"Error scraping {source}: {e}")
             typer.echo(f"[ERROR] {source}: {e}", err=True)
