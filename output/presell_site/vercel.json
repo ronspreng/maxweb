@@ -5,8 +5,8 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/$1"
+      "source": "/articles/(.*)",
+      "destination": "/articles/$1.html"
     }
   ],
   "headers": [
