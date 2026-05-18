@@ -108,8 +108,8 @@ def main():
         for art in sorted(all_articles):
             logger.info(f"    - {art.name}")
 
-        # Wrap article content in complete HTML with header/footer
-        logger.info("Wrapping articles in complete HTML...")
+        # Add HTML wrapper with stylesheet to articles (preserve original structure)
+        logger.info("Adding HTML wrapper to articles...")
         from datetime import datetime as dt
         for article_file in builder.articles_dir.glob("*.html"):
             with open(article_file, "r", encoding="utf-8") as f:
@@ -118,6 +118,7 @@ def main():
             # Only wrap if it doesn't already have DOCTYPE
             if "<!DOCTYPE" not in article_html:
                 article_title = article_file.stem.replace("-", " ").title()
+                # Minimal wrapper - just add HTML structure, keep article as-is
                 wrapped_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -136,9 +137,7 @@ def main():
         </div>
     </header>
 
-    <main class="container article-container">
-        {article_html}
-    </main>
+    {article_html}
 
     <footer class="site-footer">
         <div class="container">
