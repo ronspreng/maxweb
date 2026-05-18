@@ -41,6 +41,7 @@ from .scrapers.news_sources import (
     MedicalNewsTodayScraper,
     NPRScraper,
 )
+from .scrapers.reddit import RedditScraper
 
 app = typer.Typer(
     name="module2-competitive",
@@ -116,7 +117,9 @@ def scrape(
         typer.echo(f"  Scraping {source}...")
         try:
             scraper = None
-            if source == "healthline":
+            if source == "reddit":
+                scraper = RedditScraper(niche, keywords=keywords_list)
+            elif source == "healthline":
                 scraper = HealthLineScraper(niche)
             elif source == "medicalnewstoday":
                 scraper = MedicalNewsTodayScraper(niche)
