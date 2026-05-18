@@ -107,15 +107,28 @@ class RedditScraper:
                     # If page times out, try without waiting for network
                     page.goto(url, wait_until="domcontentloaded", timeout=20000)
 
-                # Wait for posts to load
+                # Wait for posts to load - Reddit uses dynamic loading
+                try:
+                    page.wait_for_selector("[data-testid='post-container']", timeout=10000)
+                except:
+                    logger.warning(f"[reddit] Posts not found for /r/{subreddit}, trying fallback selector")
+
                 time.sleep(2)
 
-                # Extract posts from page
-                posts = page.locator('h3').all()
+                # Try multiple selectors to find posts
+                posts_html = page.content()
 
-                for post_element in posts[:30]:
+                # Use regex to find post titles and links from HTML
+                import re as regex
+                post_pattern = r'"title":"([^"]{10,300})".*?"permalink":"(/r/[^"]+)"'
+                matches = regex.findall(post_pattern, posts_html)
+
+                logger.info(f"[reddit] Found {len(matches)} posts in HTML for /r/{subreddit}")
+
+                for title, permalink in matches[:30]:
                     try:
-                        title = post_element.text_content().strip()
+                        # Clean up title
+                        title = title.replace("\\n", " ").replace("\\u2019", "'").strip()
 
                         if not title or len(title) < 10:
                             continue
@@ -125,17 +138,10 @@ class RedditScraper:
                         if not pain_points:
                             continue
 
-                        # Find parent post link
-                        post_link = post_element.locator("xpath=ancestor::a[1]")
-                        href = post_link.get_attribute("href") or ""
-
-                        if not href.startswith("/r/"):
-                            continue
-
                         ads.append(
                             NativeAd(
                                 headline=title,
-                                landing_url=f"https://reddit.com{href}",
+                                landing_url=f"https://reddit.com{permalink}",
                                 source_site="reddit",
                                 niche=self.niche,
                                 ad_network="reddit",
