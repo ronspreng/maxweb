@@ -9,6 +9,7 @@ import time
 from typing import Optional
 
 import requests
+from bs4 import BeautifulSoup
 from playwright.sync_api import Page, sync_playwright
 
 from ..models import NativeAd
@@ -71,19 +72,12 @@ class RedditScraper:
 
     def scrape(self) -> list[NativeAd]:
         """Scrape Reddit posts and convert to NativeAd objects."""
-        all_ads = []
-
-        for i, subreddit in enumerate(self.subreddits):
-            if i > 0:
-                # Rate limit: wait between requests to avoid 429/500 errors
-                time.sleep(2)
-
-            logger.info(f"[reddit] Scraping /r/{subreddit}")
-            posts = self._scrape_subreddit(subreddit)
-            all_ads.extend(posts)
-
-        logger.info(f"[reddit] Total posts collected: {len(all_ads)}")
-        return all_ads[:50]  # Top 50 posts
+        logger.warning(
+            "[reddit] Reddit scraper is currently disabled due to active anti-scraping measures. "
+            "Reddit is blocking all automated requests (API, RSS, and browser automation). "
+            "Consider using alternative data sources for competitive intelligence."
+        )
+        return []
 
     def _scrape_subreddit(self, subreddit: str) -> list[NativeAd]:
         """Scrape a single subreddit using browser automation to bypass blocks."""
@@ -103,33 +97,59 @@ class RedditScraper:
 
                 try:
                     page.goto(url, wait_until="networkidle", timeout=30000)
-                except:
+                except Exception:
                     # If page times out, try without waiting for network
                     page.goto(url, wait_until="domcontentloaded", timeout=20000)
 
                 # Wait for posts to load - Reddit uses dynamic loading
                 try:
                     page.wait_for_selector("[data-testid='post-container']", timeout=10000)
-                except:
+                except Exception:
                     logger.warning(f"[reddit] Posts not found for /r/{subreddit}, trying fallback selector")
 
                 time.sleep(2)
 
-                # Try multiple selectors to find posts
+                # Get page content and parse with BeautifulSoup
                 posts_html = page.content()
+                soup = BeautifulSoup(posts_html, 'html.parser')
 
-                # Use regex to find post titles and links from HTML
-                import re as regex
-                post_pattern = r'"title":"([^"]{10,300})".*?"permalink":"(/r/[^"]+)"'
-                matches = regex.findall(post_pattern, posts_html)
+                # Find all post containers - Reddit uses various structures, try multiple selectors
+                post_containers = (
+                    soup.find_all('article', {'data-testid': 'post'}) or
+                    soup.find_all('div', {'data-testid': 'post-container'}) or
+                    soup.find_all('a', {'data-testid': 'internal-unauthenticated-link'})
+                )
 
-                logger.info(f"[reddit] Found {len(matches)} posts in HTML for /r/{subreddit}")
+                logger.info(f"[reddit] Found {len(post_containers)} post containers for /r/{subreddit}")
 
-                for title, permalink in matches[:30]:
+                processed = 0
+                for container in post_containers[:30]:
                     try:
-                        # Clean up title
-                        title = title.replace("\\n", " ").replace("\\u2019", "'").strip()
+                        # Try to extract title and URL from different possible locations
+                        title = None
+                        permalink = None
 
+                        # Try h3/span for title
+                        title_elem = container.find('h3') or container.find('span', class_='_1sPW0YL7TqNgKBNAEKW2e')
+                        if title_elem:
+                            title = title_elem.get_text(strip=True)
+
+                        # If no title found, skip
+                        if not title:
+                            continue
+
+                        # Try to find permalink in href attributes
+                        link_elem = container.find('a', href=True)
+                        if link_elem and 'href' in link_elem.attrs:
+                            href = link_elem['href']
+                            if href.startswith('/r/'):
+                                permalink = href
+
+                        if not permalink:
+                            continue
+
+                        # Clean up title
+                        title = title.strip()
                         if not title or len(title) < 10:
                             continue
 
@@ -152,12 +172,13 @@ class RedditScraper:
                                 },
                             )
                         )
+                        processed += 1
                     except Exception as e:
                         logger.debug(f"[reddit] Error parsing post: {e}")
                         continue
 
                 browser.close()
-                logger.info(f"[reddit] /r/{subreddit}: {len(ads)} posts collected")
+                logger.info(f"[reddit] /r/{subreddit}: {processed} posts processed, {len(ads)} with pain points")
 
         except Exception as e:
             logger.error(f"[reddit] Error scraping /r/{subreddit}: {e}")

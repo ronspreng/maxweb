@@ -131,6 +131,7 @@ pytest tests/ -v
 ## Compliance & Legal
 
 - **Scraping:** Publieke sites (Daily Mail, etc.), low request rate, desktop user-agent, respect robots.txt
+  - **Reddit:** Currently disabled (May 2026) — Reddit blocks all automated requests (API, RSS, browser automation). Use alternative sources for competitive intelligence.
 - **Pre-sell pages:** Story format, geen "cures/reverses/guaranteed", FTC disclaimer
 - **ClickHub tracking:** GDPR/CCPA check vooraf (US-only focus, maar best practice)
 
