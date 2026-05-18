@@ -56,3 +56,6 @@ logs/
 .coverage
 htmlcov/
 .streamlit/secrets.toml
+
+# Logs
+streamlit.log
