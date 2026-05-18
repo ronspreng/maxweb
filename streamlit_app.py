@@ -463,28 +463,25 @@ with tabs[2]:
             cmd.append("--skip-analysis")
 
         try:
-            with st.spinner("Running scraper (5-15 min)..."):
+            with st.spinner("Running scraper (2-5 min)..."):
                 env = os.environ.copy()
-                api_key = env.get('ANTHROPIC_API_KEY', 'NOT_FOUND')
-                st.write(f"[DEBUG] API Key: {api_key[:30]}... (len={len(api_key)})")
 
-                proc = subprocess.Popen(
+                # Run subprocess with simple capture_output
+                result = subprocess.run(
                     cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
+                    capture_output=True,
                     text=True,
-                    bufsize=1,
                     env=env,
+                    timeout=600,  # 10 min timeout
                 )
 
-                for line in proc.stdout:
-                    line = line.rstrip()
-                    logs.append(line)
-                    log_container.code("\n".join(logs[-30:]), language="log")
+                # Show output
+                if result.stdout:
+                    st.code(result.stdout, language="log")
+                if result.stderr:
+                    st.code(result.stderr, language="log")
 
-                proc.wait()
-
-                if proc.returncode == 0:
+                if result.returncode == 0:
                     st.success("✓ Scraping completed!")
                     st.session_state.niche = niche
 
@@ -496,10 +493,17 @@ with tabs[2]:
                             st.session_state.competitive_report = report_content
                             st.session_state.competitive_report_file = report_file[-1].name
                 else:
-                    st.error(f"Scraper failed (exit code {proc.returncode})")
+                    st.error(f"Scraper failed (exit code {result.returncode})")
+                    if result.stdout:
+                        st.write("**Output:**")
+                        st.code(result.stdout)
 
+        except subprocess.TimeoutExpired:
+            st.error("Scraper timeout (10 min exceeded)")
         except Exception as e:
             st.error(f"Error: {e}")
+            import traceback
+            st.code(traceback.format_exc())
 
     # Display saved competitive report (outside button block so it persists)
     if hasattr(st.session_state, 'competitive_report') and st.session_state.competitive_report:
