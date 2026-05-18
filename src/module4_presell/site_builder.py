@@ -3,6 +3,7 @@
 import json
 import logging
 import re
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -131,6 +132,8 @@ class PresellSiteBuilder:
         # Update index listing only for editorial articles, not for presell ads
         if folder == "articles":
             self.update_index()
+            # Auto-push to Vercel: commit and push new/updated articles
+            self._auto_push_to_git(filename)
         else:
             logger.info(f"[site] Skipped index update for presell ad: {filename}")
 
@@ -322,6 +325,41 @@ class PresellSiteBuilder:
 
         logger.info(f"[site] Updated index.html ({len(articles)} articles)")
         return index_path
+
+    def _auto_push_to_git(self, filename: str) -> None:
+        """Auto-commit and push article to Git (for Vercel auto-deploy)."""
+        try:
+            # Get the project root (parent of output/presell_site)
+            project_root = self.site_dir.parent.parent
+
+            # Stage the article file and index.html
+            subprocess.run(
+                ["git", "add", "-f", f"output/presell_site/articles/{filename}", "output/presell_site/index.html"],
+                cwd=project_root,
+                capture_output=True,
+                timeout=10
+            )
+
+            # Commit
+            commit_msg = f"Publish: New article '{filename.replace('.html', '').replace('-', ' ').title()}'"
+            subprocess.run(
+                ["git", "commit", "-m", commit_msg],
+                cwd=project_root,
+                capture_output=True,
+                timeout=10
+            )
+
+            # Push
+            subprocess.run(
+                ["git", "push", "origin", "master"],
+                cwd=project_root,
+                capture_output=True,
+                timeout=30
+            )
+
+            logger.info(f"[site] Auto-pushed to Vercel: {filename}")
+        except Exception as e:
+            logger.warning(f"[site] Auto-push failed: {e} (continuing anyway)")
 
     def generate_css(self) -> Path:
         """Generate shared CSS stylesheet."""
