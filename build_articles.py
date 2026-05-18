@@ -108,6 +108,49 @@ def main():
         for art in sorted(all_articles):
             logger.info(f"    - {art.name}")
 
+        # Wrap article content in complete HTML with header/footer
+        logger.info("Wrapping articles in complete HTML...")
+        from datetime import datetime as dt
+        for article_file in builder.articles_dir.glob("*.html"):
+            with open(article_file, "r", encoding="utf-8") as f:
+                article_html = f.read()
+
+            # Only wrap if it doesn't already have DOCTYPE
+            if "<!DOCTYPE" not in article_html:
+                article_title = article_file.stem.replace("-", " ").title()
+                wrapped_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{article_title} - Health & Wellness</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="/" class="logo">Health & Wellness</a>
+            <nav>
+                <a href="/">All Articles</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container article-container">
+        {article_html}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; {dt.now().year} Health & Wellness. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>"""
+                with open(article_file, "w", encoding="utf-8") as f:
+                    f.write(wrapped_html)
+                logger.info(f"  Wrapped: {article_file.name}")
+
         builder.update_index()
 
         logger.info("  Index updated successfully")
