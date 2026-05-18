@@ -406,7 +406,7 @@ with tabs[1]:
 # ===== TAB 3: COMPETITIVE RESEARCH =====
 with tabs[2]:
     st.header("Step 3: Competitive Research")
-    st.write("Scrape Reddit/competitors to find supporting painpoints")
+    st.write("Scrape health news sources to find supporting painpoints")
 
     if st.session_state.selected_offer:
         st.success(f"📌 Offer: **{st.session_state.selected_offer}**")
@@ -415,7 +415,7 @@ with tabs[2]:
 
     if st.session_state.vsl_info:
         st.info(f"📌 VSL Angle: {st.session_state.vsl_info['angle']}")
-        st.write("Reddit scraping will focus on validating this angle...")
+        st.write("Research will focus on validating this angle...")
     else:
         st.warning("💡 Go to Step 2 and detect VSL angle first")
 
@@ -429,9 +429,9 @@ with tabs[2]:
             niche = st.selectbox("Niche", ["brain-health", "lung-health", "mens-health"], key="niche_select")
     with col2:
         sources = st.multiselect(
-            "Sources",
-            ["reddit", "amazon", "quora", "dailymail", "msn", "yahoo"],
-            default=["reddit"],
+            "Sources (working as of May 2026)",
+            ["healthline", "medicalnewstoday", "npr", "dailymail", "reddit"],
+            default=["healthline", "medicalnewstoday", "npr", "dailymail"],
             key="sources_select",
         )
 
