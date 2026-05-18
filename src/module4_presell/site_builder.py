@@ -139,6 +139,29 @@ class PresellSiteBuilder:
     def _wrap_article(self, page: PresellPage, body_html: str, slug: str) -> str:
         """Wrap presell page in article template with navigation."""
         pub_date = page.generated_at.strftime("%Y-%m-%d") if page.generated_at else ""
+
+        # Extract only the body content if full HTML document was passed
+        content = body_html
+        if "<!DOCTYPE" in content or "<html" in content.lower():
+            # Extract content between <body> tags
+            match = re.search(r"<body[^>]*>(.*?)</body>", content, re.IGNORECASE | re.DOTALL)
+            if match:
+                content = match.group(1).strip()
+
+        # Keep only the FIRST h1, remove all subsequent h1 tags
+        first_h1 = re.search(r'<h1[^>]*>.*?</h1>', content, re.IGNORECASE | re.DOTALL)
+        if first_h1:
+            # Keep everything up to and including the first h1
+            before_h1 = content[:first_h1.end()]
+            after_h1 = content[first_h1.end():]
+            # Remove all h1 tags from the rest
+            after_h1 = re.sub(r'<h1[^>]*>.*?</h1>', '', after_h1, flags=re.IGNORECASE | re.DOTALL)
+            content = before_h1 + after_h1
+
+        # Clean up opening <p><em>...</em></p> lines
+        content = re.sub(r'^\s*<p><em>.*?</em></p>\s*', '', content, flags=re.IGNORECASE)
+        content = content.lstrip()
+
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -160,7 +183,7 @@ class PresellSiteBuilder:
 
     <main class="container article-container">
         <article class="article">
-            {body_html}
+            {content}
         </article>
     </main>
 
