@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I Was Drinking Five Coffees a Day to Stay Sharp — Why I Finally Quit at 64 - Health & Wellness</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Georgia, 'Times New Roman', serif;
+            line-height: 1.7;
+            color: #2a2a2a;
+            background-color: #f6f5f1;
+        }
+        .topbar {
+            background-color: #1a3553;
+            color: white;
+            padding: 14px 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .topbar-inner {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .topbar .logo { font-size: 19px; font-weight: 700; letter-spacing: 0.5px; }
+        .topbar .nav { font-size: 13px; opacity: 0.85; }
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 40px 56px 48px;
+            box-shadow: 0 1px 24px rgba(0,0,0,0.06);
+        }
+        .badge {
+            display: inline-block;
+            background-color: #e9f3fb;
+            color: #1a5a8a;
+            padding: 5px 14px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 14px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600;
+            border-radius: 2px;
+        }
+        .breadcrumb {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 22px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .breadcrumb a { color: #888; text-decoration: none; }
+        h1 {
+            font-size: 36px;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .subheadline {
+            font-size: 19px;
+            line-height: 1.5;
+            margin-bottom: 28px;
+            color: #555;
+            font-weight: 400;
+            font-style: italic;
+        }
+        .author-bar {
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #ececec;
+            border-bottom: 1px solid #ececec;
+            padding: 16px 0;
+            margin-bottom: 28px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .author-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a5a8a, #4a90c9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+        .author-info { flex: 1; }
+        .author-name { font-size: 14px; font-weight: 600; color: #1a3553; }
+        .author-bio { font-size: 12px; color: #888; margin-top: 2px; }
+        .article-meta {
+            font-size: 11px;
+            color: #999;
+            text-align: right;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .article-body {
+            font-size: 18px;
+            color: #2a2a2a;
+        }
+        .article-body p {
+            margin-bottom: 22px;
+        }
+        .article-body > p:first-of-type::first-letter {
+            font-size: 56px;
+            line-height: 0.9;
+            font-weight: 700;
+            float: left;
+            padding: 4px 10px 0 0;
+            color: #1a5a8a;
+            font-family: Georgia, serif;
+        }
+        .article-body h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a3553;
+            margin: 36px 0 16px;
+            line-height: 1.3;
+            letter-spacing: -0.3px;
+        }
+        .callout {
+            border-left: 4px solid #1a5a8a;
+            background-color: #f5f8fc;
+            padding: 20px 24px;
+            margin: 28px 0;
+            font-size: 17px;
+            line-height: 1.55;
+            color: #1a3553;
+            font-style: italic;
+        }
+        .callout-source {
+            display: block;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #888;
+            font-style: normal;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            letter-spacing: 0.3px;
+        }
+        .cta-inline {
+            background-color: #fff8e6;
+            border: 1px solid #f0d885;
+            border-radius: 6px;
+            padding: 22px 26px;
+            margin: 32px 0;
+            text-align: center;
+        }
+        .cta-inline p {
+            font-size: 16px;
+            color: #5a4500;
+            margin-bottom: 14px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #e07a14;
+            color: white !important;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 4px;
+            letter-spacing: 0.3px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            text-transform: uppercase;
+            box-shadow: 0 2px 6px rgba(224, 122, 20, 0.3);
+        }
+        .cta-button:hover {
+            background-color: #c66a0e;
+        }
+        .cta-final {
+            margin: 40px 0;
+            padding: 32px 28px;
+            background: linear-gradient(135deg, #1a3553, #2c5174);
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+        }
+        .cta-final h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+            color: white;
+            font-weight: 700;
+        }
+        .cta-final p {
+            font-size: 15px;
+            margin-bottom: 22px;
+            opacity: 0.92;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .cta-final .cta-button {
+            background-color: #e07a14;
+            font-size: 17px;
+            padding: 16px 38px;
+        }
+        .trust-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 24px 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .trust-pill {
+            background-color: #eaf3ef;
+            color: #2d6b4f;
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        .disclaimer {
+            margin-top: 36px;
+            padding-top: 22px;
+            border-top: 1px solid #ececec;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #999;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 26px 20px; }
+            h1 { font-size: 26px; }
+            .subheadline { font-size: 17px; }
+            .article-body { font-size: 17px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="topbar-inner">
+            <div class="logo">Health &amp; Wellness</div>
+            <div class="nav">All Articles &middot; Cognitive Research</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="badge">Sponsored Content</div>
+        <div class="breadcrumb">Health &gt; Cognitive Wellness &gt; Personal Stories</div>
+
+        <h1>I Was Drinking Five Coffees a Day to Stay Sharp — Why I Finally Quit at 64</h1>
+        <p class="subheadline">A retired electrician explains how his coffee habit was masking the real issue with his afternoon focus — and what he found when he went looking for an alternative without stimulants.</p>
+
+        <div class="author-bar">
+            <div class="author-avatar">T</div>
+            <div class="author-info">
+                <div class="author-name">As told to the Health &amp; Wellness Editorial Team</div>
+                <div class="author-bio">Reader stories on cognitive wellness, reviewed by our editorial team. Individual experiences vary.</div>
+            </div>
+            <div class="article-meta">
+                Published &middot; June 2026<br>
+                5 min read
+            </div>
+        </div>
+
+        <div class="article-body">
+            <p>Forty years as an electrician teaches you to respect the details. Wire colors, breaker ratings, torque specs — get one detail wrong and somebody has a very bad day. My memory for details was my livelihood. And my fuel was coffee. Two cups before work, one at ten, one after lunch, one around three. For decades, it worked.</p>
+
+            <p>I'm Tom, 64, from Ohio, retired three years now. Somewhere after my 60th birthday, the math stopped working. The coffee still made me feel <em>busy</em> — jittery, restless, up twice a night — but it stopped making me feel <em>sharp</em>. I'd walk to the garage and forget what I came for. I'd lose the thread of a story halfway through telling it. At my grandson's hockey game, I blanked on the name of a man I'd worked beside for fifteen years.</p>
+
+            <h2>More Coffee Wasn't the Answer</h2>
+
+            <p>My first instinct was, of course, a sixth cup. My wife put a stop to that — mostly because I was pacing the kitchen at 11 p.m. That's when it dawned on me: caffeine was covering up the problem, not addressing it. I felt alert, but the focus and recall I actually wanted weren't coming back with it.</p>
+
+            <p>My daughter-in-law works at a pharmacy, and she explained it in a way that stuck with me: a stimulant revs the engine, but it doesn't do anything for the wiring. As we get older, she said, research suggests our brains can become less efficient at using the nutrients that support memory and clear thinking. You can't caffeinate your way around that.</p>
+
+            <div class="callout">"Caffeine revs the engine, but it doesn't do anything for the wiring. That comparison made sense to a guy like me."<span class="callout-source">&mdash; Tom, 64, retired electrician</span></div>
+
+            <div class="cta-inline">
+                <p><strong>Curious about the stimulant-free approach Tom found?</strong></p>
+                <a href="https://ouaqva.mcgo2.com/click" class="cta-button cta-mid">Learn More Here</a>
+            </div>
+
+            <h2>What I Was Looking For</h2>
+
+            <p>I had three requirements. No stimulants — I was done with the jitters. Natural ingredients — I take enough pills as it is and didn't want anything habit-forming. And no nonsense promises — anything claiming to make me 25 again was going straight in the trash.</p>
+
+            <p>That search led me to Neuro Serge. It's a daily supplement built around a blend of more than 20 plant-based ingredients and nutrients that research suggests may help support brain health, focus, and mental clarity. No stimulants, non-habit-forming, one-time purchase. And it comes with a 180-day money-back guarantee, which told me the company expects people to actually give it a fair try — that's the part that convinced this skeptic to test it.</p>
+
+            <h2>My Honest Experience</h2>
+
+            <p>Week one: nothing, and I said so out loud, often. But I'd decided to treat it like a 90-day job and see it through. Around week three, I noticed the afternoons felt less foggy — I was finishing my crossword after lunch instead of abandoning it. By week six, my wife pointed out I'd stopped re-asking her things she'd told me the day before.</p>
+
+            <p>I still drink coffee — two cups, because I like the taste. But I'm not using it as a crutch anymore, and I'm sleeping better for it. Is my recall perfect? No, and nothing will make it perfect. Results vary from person to person. But for me, the trend has gone the right way, and that's what I was after.</p>
+
+            <div class="trust-row">
+                <span class="trust-pill">&#10003; Reader Story</span>
+                <span class="trust-pill">&#10003; Editorially Reviewed</span>
+                <span class="trust-pill">&#10003; Stimulant-Free Formula</span>
+                <span class="trust-pill">&#10003; Updated June 2026</span>
+            </div>
+
+            <div class="cta-inline">
+                <p><strong>20+ plant-based ingredients, no stimulants, 180-day money-back guarantee.</strong></p>
+                <a href="https://ouaqva.mcgo2.com/click" class="cta-button cta-mid2">See If It's Right for You</a>
+            </div>
+
+            <h2>What I'd Tell a Friend</h2>
+
+            <p>If your coffee count keeps climbing while your focus keeps slipping, take it from an old electrician: check the wiring, not just the fuel. Talk to your doctor, get your sleep in order, keep your mind busy. And if you want to look at the nutritional side like I did, the 180-day guarantee means you can find out for yourself without betting much on it.</p>
+
+            <div class="cta-final">
+                <h3>Want to See What Tom Found?</h3>
+                <p>Learn more about Neuro Serge and decide for yourself.</p>
+                <a href="https://ouaqva.mcgo2.com/click" class="cta-button cta-end">Claim Your Supply Today</a>
+            </div>
+        </div>
+
+        <p class="disclaimer">
+            <strong>Disclosure:</strong> This is a paid advertisement. The story above is illustrative of
+            reported user experiences; names and details have been changed. <strong>Results may vary.</strong>
+            These statements have not been evaluated by the FDA. This product is not intended to diagnose,
+            treat, cure, or prevent any disease. Individual results shown may not be typical. Consult a
+            healthcare professional before use, especially if you take medication or have a medical
+            condition. See Terms &amp; Conditions for full disclosure.
+        </p>
+        <p class="disclaimer">&copy; 2026 Health &amp; Wellness. All rights reserved.</p>
+    </div>
+
+    <script>
+        (function() {
+            try {
+                var params = new URLSearchParams(window.location.search);
+                var clickid = params.get('clickid') || params.get('click_id') || params.get('subid');
+                if (clickid) {
+                    document.querySelectorAll('a.cta-button').forEach(function(a) {
+                        var url = new URL(a.href);
+                        url.searchParams.set('clickid', clickid);
+                        a.href = url.toString();
+                    });
+                }
+            } catch (e) {}
+        })();
+    </script>
+</body>
+</html>
